@@ -103,18 +103,21 @@ class Ui_MainWindow(object):
         self.polygonCheckBox.setSizePolicy(sizePolicy1)
         self.polygonCheckBox.setMinimumSize(QSize(120, 0))
         self.polygonCheckBox.setMaximumSize(QSize(16777215, 16777215))
+        self.polygonCheckBox.setChecked(True)
 
         self.verticalLayout.addWidget(self.polygonCheckBox)
 
         self.meshCheckBox = QCheckBox(self.centralwidget)
         self.meshCheckBox.setObjectName(u"meshCheckBox")
         self.meshCheckBox.setMinimumSize(QSize(120, 0))
+        self.meshCheckBox.setChecked(True)
 
         self.verticalLayout.addWidget(self.meshCheckBox)
 
         self.fillCheckBox = QCheckBox(self.centralwidget)
         self.fillCheckBox.setObjectName(u"fillCheckBox")
         self.fillCheckBox.setMinimumSize(QSize(120, 0))
+        self.fillCheckBox.setChecked(True)
 
         self.verticalLayout.addWidget(self.fillCheckBox)
 

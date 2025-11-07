@@ -173,6 +173,9 @@
         <property name="text">
          <string>Polygon</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -186,6 +189,9 @@
         <property name="text">
          <string>Mesh</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -198,6 +204,9 @@
         </property>
         <property name="text">
          <string>Fill</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
