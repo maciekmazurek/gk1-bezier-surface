@@ -117,7 +117,7 @@ class Ui_MainWindow(object):
         self.fillCheckBox = QCheckBox(self.centralwidget)
         self.fillCheckBox.setObjectName(u"fillCheckBox")
         self.fillCheckBox.setMinimumSize(QSize(120, 0))
-        self.fillCheckBox.setChecked(True)
+        self.fillCheckBox.setChecked(False)
 
         self.verticalLayout.addWidget(self.fillCheckBox)
 
