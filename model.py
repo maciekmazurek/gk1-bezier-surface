@@ -23,4 +23,10 @@ class Triangle:
 class Mesh:
     def __init__(self):
         self.triangles = []
-        self.control_points = []
+
+class BezierSurface:
+    def __init__(self, control_points: list[list[QVector3D]]):
+        self.control_points = control_points
+        self.mesh: Mesh = None
+        self.alpha = None
+        self.beta = None
