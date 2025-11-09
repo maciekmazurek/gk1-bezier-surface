@@ -33,12 +33,12 @@ class BezierCanvas(QWidget):
 
             if self._bezier_surf is None:
                 return
-            if self.show_polygon:
-                self._draw_polygon(painter)
-            if self.show_mesh:
-                self._draw_mesh(painter)
             if self.show_fill:
                 self._draw_fill(painter)
+            if self.show_mesh:
+                self._draw_mesh(painter)
+            if self.show_polygon:
+                self._draw_polygon(painter)
         finally:
             painter.end()
 
