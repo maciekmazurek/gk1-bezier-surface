@@ -32,7 +32,7 @@ class BezierSurface:
         self.vertices_grid = []
         self.mesh = []
 
-        # Generuj siatkę wierzchołków
+        # Generate grid of vertices
         for i in range(divisions + 1):
             u = i / divisions
             row = []
@@ -42,16 +42,16 @@ class BezierSurface:
                 row.append(vertex)
             self.vertices_grid.append(row)
         
-        # Twórz trójkąty z siatki
+        # Create triangles from the grid
         for i in range(divisions):
             for j in range(divisions):
-                # Pobierz 4 wierzchołki kwadratu
+                # Get 4 vertices of the quad
                 v00 = self.vertices_grid[i][j]
                 v01 = self.vertices_grid[i][j + 1]
                 v10 = self.vertices_grid[i + 1][j]
                 v11 = self.vertices_grid[i + 1][j + 1]
                 
-                # Dwa trójkąty
+                # Two triangles
                 self.mesh.append(Triangle(v00, v01, v10))
                 self.mesh.append(Triangle(v10, v11, v01))
 

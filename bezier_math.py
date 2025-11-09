@@ -63,7 +63,7 @@ def evaluate_bezier_point(u: float, v: float, V: list[list[QVector3D]]):
     return P, Pu, Pv, N
 
 def np_rotation_matrix_z(angle_deg):
-    """Macierz numpy-owa rotacji wokół osi Z"""
+    """Numpy rotation matrix around the Z axis"""
     angle = math.radians(angle_deg)
     cos_a = math.cos(angle)
     sin_a = math.sin(angle)
@@ -75,7 +75,7 @@ def np_rotation_matrix_z(angle_deg):
     ], dtype=float)
 
 def np_rotation_matrix_x(angle_deg):
-    """Macierz numpy-owa rotacji wokół osi X"""
+    """Numpy rotation matrix around the X axis"""
     angle = math.radians(angle_deg)
     cos_b = math.cos(angle)
     sin_b = math.sin(angle)
@@ -87,7 +87,11 @@ def np_rotation_matrix_x(angle_deg):
     ], dtype=float)
 
 def rotate_by_Z_X(vector, alpha, beta):
-    """Obraca Qt wektor o kąt alpha względem osi Z i kąt beta wzlęgem osi X"""
+    """Rotate a Qt QVector3D by alpha degrees around Z, then beta degrees around X.
+
+    The function converts the Qt vector to numpy, applies Z then X rotation matrices,
+    and converts the result back to QVector3D.
+    """
     np_matrix_z = np_rotation_matrix_z(alpha)
     np_matrix_x = np_rotation_matrix_x(beta)
 
