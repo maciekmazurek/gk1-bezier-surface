@@ -1,6 +1,6 @@
-from PySide6.QtGui import QVector3D
+from model import ControlPoint
 
-def load_control_points(filename: str) -> list[list[QVector3D]]:
+def load_control_points(filename: str) -> list[list[ControlPoint]]:
     control_points = []
 
     with open(filename, 'r') as f:
@@ -14,7 +14,7 @@ def load_control_points(filename: str) -> list[list[QVector3D]]:
             for j in range(4):
                 line = lines[i * 4 + j].strip()
                 x, y, z = map(float, line.split())
-                row.append(QVector3D(x, y, z))
+                row.append(ControlPoint(x, y, z))
             control_points.append(row)
 
     return control_points
