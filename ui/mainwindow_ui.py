@@ -16,8 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel,
-    QMainWindow, QMenuBar, QSizePolicy, QSlider,
-    QSpacerItem, QStatusBar, QVBoxLayout, QWidget)
+    QMainWindow, QMenuBar, QPushButton, QRadioButton,
+    QSizePolicy, QSlider, QSpacerItem, QStatusBar,
+    QVBoxLayout, QWidget)
 
 from bezier_renderer import BezierCanvas
 
@@ -41,7 +42,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.canvas)
 
         self.mainVerticalLayout = QVBoxLayout()
-        self.mainVerticalLayout.setSpacing(1)
+        self.mainVerticalLayout.setSpacing(3)
         self.mainVerticalLayout.setObjectName(u"mainVerticalLayout")
         self.mainVerticalLayout.setContentsMargins(0, -1, -1, -1)
         self.triangulationLabel = QLabel(self.centralwidget)
@@ -163,6 +164,161 @@ class Ui_MainWindow(object):
 
         self.mainVerticalLayout.addWidget(self.fillCheckBox)
 
+        self.kdLabel = QLabel(self.centralwidget)
+        self.kdLabel.setObjectName(u"kdLabel")
+        sizePolicy1.setHeightForWidth(self.kdLabel.sizePolicy().hasHeightForWidth())
+        self.kdLabel.setSizePolicy(sizePolicy1)
+
+        self.mainVerticalLayout.addWidget(self.kdLabel)
+
+        self.kdHorizontalLayout = QHBoxLayout()
+        self.kdHorizontalLayout.setObjectName(u"kdHorizontalLayout")
+        self.kdSlider = QSlider(self.centralwidget)
+        self.kdSlider.setObjectName(u"kdSlider")
+        sizePolicy1.setHeightForWidth(self.kdSlider.sizePolicy().hasHeightForWidth())
+        self.kdSlider.setSizePolicy(sizePolicy1)
+        self.kdSlider.setMinimumSize(QSize(120, 0))
+        self.kdSlider.setMaximum(100)
+        self.kdSlider.setValue(50)
+        self.kdSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.kdHorizontalLayout.addWidget(self.kdSlider)
+
+        self.kdValueLabel = QLabel(self.centralwidget)
+        self.kdValueLabel.setObjectName(u"kdValueLabel")
+
+        self.kdHorizontalLayout.addWidget(self.kdValueLabel)
+
+
+        self.mainVerticalLayout.addLayout(self.kdHorizontalLayout)
+
+        self.ksLabel = QLabel(self.centralwidget)
+        self.ksLabel.setObjectName(u"ksLabel")
+        sizePolicy1.setHeightForWidth(self.ksLabel.sizePolicy().hasHeightForWidth())
+        self.ksLabel.setSizePolicy(sizePolicy1)
+
+        self.mainVerticalLayout.addWidget(self.ksLabel)
+
+        self.ksHorizontalLayout = QHBoxLayout()
+        self.ksHorizontalLayout.setObjectName(u"ksHorizontalLayout")
+        self.ksSlider = QSlider(self.centralwidget)
+        self.ksSlider.setObjectName(u"ksSlider")
+        sizePolicy1.setHeightForWidth(self.ksSlider.sizePolicy().hasHeightForWidth())
+        self.ksSlider.setSizePolicy(sizePolicy1)
+        self.ksSlider.setMinimumSize(QSize(120, 0))
+        self.ksSlider.setMaximum(100)
+        self.ksSlider.setValue(50)
+        self.ksSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.ksHorizontalLayout.addWidget(self.ksSlider)
+
+        self.ksValueLabel = QLabel(self.centralwidget)
+        self.ksValueLabel.setObjectName(u"ksValueLabel")
+
+        self.ksHorizontalLayout.addWidget(self.ksValueLabel)
+
+
+        self.mainVerticalLayout.addLayout(self.ksHorizontalLayout)
+
+        self.mLabel = QLabel(self.centralwidget)
+        self.mLabel.setObjectName(u"mLabel")
+        sizePolicy1.setHeightForWidth(self.mLabel.sizePolicy().hasHeightForWidth())
+        self.mLabel.setSizePolicy(sizePolicy1)
+
+        self.mainVerticalLayout.addWidget(self.mLabel)
+
+        self.mHorizontalLayout = QHBoxLayout()
+        self.mHorizontalLayout.setObjectName(u"mHorizontalLayout")
+        self.mSlider = QSlider(self.centralwidget)
+        self.mSlider.setObjectName(u"mSlider")
+        sizePolicy1.setHeightForWidth(self.mSlider.sizePolicy().hasHeightForWidth())
+        self.mSlider.setSizePolicy(sizePolicy1)
+        self.mSlider.setMinimumSize(QSize(120, 0))
+        self.mSlider.setMinimum(1)
+        self.mSlider.setMaximum(100)
+        self.mSlider.setValue(50)
+        self.mSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.mHorizontalLayout.addWidget(self.mSlider)
+
+        self.mValueLabel = QLabel(self.centralwidget)
+        self.mValueLabel.setObjectName(u"mValueLabel")
+
+        self.mHorizontalLayout.addWidget(self.mValueLabel)
+
+
+        self.mainVerticalLayout.addLayout(self.mHorizontalLayout)
+
+        self.lightLabel = QLabel(self.centralwidget)
+        self.lightLabel.setObjectName(u"lightLabel")
+        sizePolicy1.setHeightForWidth(self.lightLabel.sizePolicy().hasHeightForWidth())
+        self.lightLabel.setSizePolicy(sizePolicy1)
+
+        self.mainVerticalLayout.addWidget(self.lightLabel)
+
+        self.lightHorizontalLayout = QHBoxLayout()
+        self.lightHorizontalLayout.setObjectName(u"lightHorizontalLayout")
+        self.lightSlider = QSlider(self.centralwidget)
+        self.lightSlider.setObjectName(u"lightSlider")
+        sizePolicy1.setHeightForWidth(self.lightSlider.sizePolicy().hasHeightForWidth())
+        self.lightSlider.setSizePolicy(sizePolicy1)
+        self.lightSlider.setMinimumSize(QSize(120, 0))
+        self.lightSlider.setMinimum(-10)
+        self.lightSlider.setMaximum(10)
+        self.lightSlider.setValue(5)
+        self.lightSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.lightHorizontalLayout.addWidget(self.lightSlider)
+
+        self.lightValueLabel = QLabel(self.centralwidget)
+        self.lightValueLabel.setObjectName(u"lightValueLabel")
+
+        self.lightHorizontalLayout.addWidget(self.lightValueLabel)
+
+
+        self.mainVerticalLayout.addLayout(self.lightHorizontalLayout)
+
+        self.surfaceColorLabel = QLabel(self.centralwidget)
+        self.surfaceColorLabel.setObjectName(u"surfaceColorLabel")
+
+        self.mainVerticalLayout.addWidget(self.surfaceColorLabel)
+
+        self.surfaceColorHorizontalLayout = QHBoxLayout()
+        self.surfaceColorHorizontalLayout.setObjectName(u"surfaceColorHorizontalLayout")
+        self.solidRadioButton = QRadioButton(self.centralwidget)
+        self.solidRadioButton.setObjectName(u"solidRadioButton")
+        self.solidRadioButton.setChecked(True)
+
+        self.surfaceColorHorizontalLayout.addWidget(self.solidRadioButton)
+
+        self.textureRadioButton = QRadioButton(self.centralwidget)
+        self.textureRadioButton.setObjectName(u"textureRadioButton")
+
+        self.surfaceColorHorizontalLayout.addWidget(self.textureRadioButton)
+
+
+        self.mainVerticalLayout.addLayout(self.surfaceColorHorizontalLayout)
+
+        self.lightColorButton = QPushButton(self.centralwidget)
+        self.lightColorButton.setObjectName(u"lightColorButton")
+
+        self.mainVerticalLayout.addWidget(self.lightColorButton)
+
+        self.surfaceColorButton = QPushButton(self.centralwidget)
+        self.surfaceColorButton.setObjectName(u"surfaceColorButton")
+
+        self.mainVerticalLayout.addWidget(self.surfaceColorButton)
+
+        self.surfaceTextureButton = QPushButton(self.centralwidget)
+        self.surfaceTextureButton.setObjectName(u"surfaceTextureButton")
+
+        self.mainVerticalLayout.addWidget(self.surfaceTextureButton)
+
+        self.animationButton = QPushButton(self.centralwidget)
+        self.animationButton.setObjectName(u"animationButton")
+
+        self.mainVerticalLayout.addWidget(self.animationButton)
+
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.mainVerticalLayout.addItem(self.verticalSpacer)
@@ -195,5 +351,20 @@ class Ui_MainWindow(object):
         self.polygonCheckBox.setText(QCoreApplication.translate("MainWindow", u"Polygon", None))
         self.meshCheckBox.setText(QCoreApplication.translate("MainWindow", u"Mesh", None))
         self.fillCheckBox.setText(QCoreApplication.translate("MainWindow", u"Fill", None))
+        self.kdLabel.setText(QCoreApplication.translate("MainWindow", u"kd (diffusion)", None))
+        self.kdValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.5", None))
+        self.ksLabel.setText(QCoreApplication.translate("MainWindow", u"ks (specularity)", None))
+        self.ksValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.5", None))
+        self.mLabel.setText(QCoreApplication.translate("MainWindow", u"m (gloss)", None))
+        self.mValueLabel.setText(QCoreApplication.translate("MainWindow", u"50", None))
+        self.lightLabel.setText(QCoreApplication.translate("MainWindow", u"Light source (Z)", None))
+        self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"5", None))
+        self.surfaceColorLabel.setText(QCoreApplication.translate("MainWindow", u"Surface color", None))
+        self.solidRadioButton.setText(QCoreApplication.translate("MainWindow", u"Solid", None))
+        self.textureRadioButton.setText(QCoreApplication.translate("MainWindow", u"Texture", None))
+        self.lightColorButton.setText(QCoreApplication.translate("MainWindow", u"Select light color", None))
+        self.surfaceColorButton.setText(QCoreApplication.translate("MainWindow", u"Select surface color", None))
+        self.surfaceTextureButton.setText(QCoreApplication.translate("MainWindow", u"Upload surface texture", None))
+        self.animationButton.setText(QCoreApplication.translate("MainWindow", u"Pause animation", None))
     # retranslateUi
 

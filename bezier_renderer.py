@@ -13,7 +13,7 @@ class BezierCanvas(QWidget):
         self.show_polygon: bool = True
         self.show_mesh: bool = True
         self.show_fill: bool = False
-        # Parameter for scaling the size of the surface
+        # Parameter for scaling the size of the bezier surface
         self.scale = 50
 
     def initialize(self, control_points: list[list[ControlPoint]], 
