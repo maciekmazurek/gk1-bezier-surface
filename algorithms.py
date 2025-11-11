@@ -1,27 +1,30 @@
 from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPainter
+import math
+
+EPSILON = 1e-6
 
 def scanline_filling(P: list[QPointF], painter: QPainter):
     def update_AET(curr_idx: int, prev_idx: int, next_idx: int, P: list[QPointF], AET: dict):
         # Updating previous edge
         prev_edge = eval_AET_edge(P[prev_idx], P[curr_idx], y)
-        if prev_edge is not None:
-            if P[prev_idx].y() >= P[curr_idx].y():
+        if P[prev_idx].y() >= P[curr_idx].y():
+            if prev_edge is not None:
                 AET[(prev_idx, curr_idx)] = prev_edge
-            else:
-                AET.pop((prev_idx, curr_idx), None)
+        else:
+            AET.pop((prev_idx, curr_idx), None)
+
         # Updating next edge
         next_edge = eval_AET_edge(P[curr_idx], P[next_idx], y)
-        if next_edge is not None:
-            if P[next_idx].y() >= P[curr_idx].y():
+        if P[next_idx].y() >= P[curr_idx].y():
+            if next_edge is not None:
                 AET[(curr_idx, next_idx)] = next_edge
-            else:
-                AET.pop((curr_idx, next_idx), None)
+        else:
+            AET.pop((curr_idx, next_idx), None)
         
     def eval_AET_edge(p0: QPointF, p1: QPointF, scan_line: float):
-        # Ignore horizontal edges
-        EPSILON = 1e-9
-        if abs(p0.y() - p1.y()) < EPSILON:
+        # Ignore horizontal or nearly horizontal edges
+        if abs(p1.y() - p0.y()) < EPSILON:
             return None
         
         # Ensure p_lower has smaller y (or equal y but smaller x)
@@ -29,6 +32,10 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
             p_lower, p_upper = p0, p1
         else:
             p_lower, p_upper = p1, p0
+
+        # Use half-open interval on Y: include lower y, exclude upper y
+        if scan_line < p_lower.y() or scan_line >= p_upper.y():
+            return None
 
         dx = p_upper.x() - p_lower.x()
         dy = p_upper.y() - p_lower.y()
@@ -55,19 +62,20 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
         return
 
     ind = sorted(range(n), key=lambda index: P[index].y())
-    y_min = int(P[ind[0]].y())
-    y_max = int(P[ind[n - 1]].y())
+    y_min = math.ceil(P[ind[0]].y())
+    y_max = math.ceil(P[ind[n - 1]].y()) - 1
     AET = {}
     i = 0
     y = y_min
     while y <= y_max:
-        while i < n and y == int(P[ind[i]].y()):  # Process all vertices on current scanline y
+        # Process all vertices lying on current scanline
+        while y == math.ceil(P[ind[i]].y()) and i < n:
             curr_idx = ind[i]
             prev_idx = (ind[i] - 1) % n
             next_idx = (ind[i] + 1) % n
             update_AET(curr_idx, prev_idx, next_idx, P, AET)
             i += 1
-        x_values = [int(edge_val['x']) for (_, edge_val) in AET.items()]
+        x_values = [math.ceil(edge_val['x']) for (_, edge_val) in AET.items()]
         x_values.sort()
         fill(x_values, y, painter)
         increment_x(AET)
