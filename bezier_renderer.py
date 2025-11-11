@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, Qt
 from PySide6.QtCore import QPointF
+from numpy import poly
+from algorithms import scanline_filling
 from model import BezierSurface, ControlPoint
 
 class BezierCanvas(QWidget):
@@ -85,7 +87,7 @@ class BezierCanvas(QWidget):
             painter.drawLine(p2, p0)
 
     def _draw_fill(self, painter: QPainter):
-        painter.setPen(Qt.NoPen)
+        painter.setPen(QPen(QColor(0, 255, 255), 1))
         painter.setBrush(QBrush(QColor(0, 255, 255)))
         
         for triangle in self._bezier_surf.mesh:
@@ -96,7 +98,7 @@ class BezierCanvas(QWidget):
             p2 = self.project_point(v2.P_rot)
             
             polygon = [p0, p1, p2]
-            painter.drawPolygon(polygon)
+            scanline_filling(polygon, painter)
 
     def update_on_triangulation(self, divisions: int, alpha: float, beta: float):
         if self._bezier_surf is not None:

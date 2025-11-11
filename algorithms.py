@@ -2,25 +2,26 @@ from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPainter
 
 def scanline_filling(P: list[QPointF], painter: QPainter):
-    def update_AET(P_current: QPointF, P_prev: QPointF, P_next: QPointF, AET: dict):
+    def update_AET(curr_idx: int, prev_idx: int, next_idx: int, P: list[QPointF], AET: dict):
         # Updating previous edge
-        prev_edge = eval_AET_edge(P_prev, P_current, y)
+        prev_edge = eval_AET_edge(P[prev_idx], P[curr_idx], y)
         if prev_edge is not None:
-            if P_prev.y() >= P_current.y():
-                AET[(P_prev, P_current)] = prev_edge
+            if P[prev_idx].y() >= P[curr_idx].y():
+                AET[(prev_idx, curr_idx)] = prev_edge
             else:
-                del AET[(P_prev, P_current)]
+                AET.pop((prev_idx, curr_idx), None)
         # Updating next edge
-        next_edge = eval_AET_edge(P_current, P_next, y)
+        next_edge = eval_AET_edge(P[curr_idx], P[next_idx], y)
         if next_edge is not None:
-            if P_next.y() >= P_current.y():
-                AET[(P_current, P_next)] = next_edge
+            if P[next_idx].y() >= P[curr_idx].y():
+                AET[(curr_idx, next_idx)] = next_edge
             else:
-                del AET[(P_current, P_next)]
+                AET.pop((curr_idx, next_idx), None)
         
     def eval_AET_edge(p0: QPointF, p1: QPointF, scan_line: float):
         # Ignore horizontal edges
-        if p0.y() == p1.y():
+        EPSILON = 1e-9
+        if abs(p0.y() - p1.y()) < EPSILON:
             return None
         
         # Ensure p_lower has smaller y (or equal y but smaller x)
@@ -54,21 +55,20 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
         return
 
     ind = sorted(range(n), key=lambda index: P[index].y())
-    y_min = int(round(P[ind[0]].y()))
-    y_max = int(round(P[ind[n - 1]].y()))
+    y_min = int(P[ind[0]].y())
+    y_max = int(P[ind[n - 1]].y())
     AET = {}
     i = 0
     y = y_min
     while y <= y_max:
-        while i < n and y == int(round(P[ind[i]].y())): # Przetwarzamy wszystkie wierzchołki leżące na biężącej linii y
-            P_current = P[ind[i]]
-            P_prev = P[(ind[i] - 1) % n]
-            P_next = P[(ind[i] + 1) % n]
-            update_AET(P_current, P_prev, P_next, AET)
+        while i < n and y == int(P[ind[i]].y()):  # Process all vertices on current scanline y
+            curr_idx = ind[i]
+            prev_idx = (ind[i] - 1) % n
+            next_idx = (ind[i] + 1) % n
+            update_AET(curr_idx, prev_idx, next_idx, P, AET)
             i += 1
-        x_values = [int(round(edge_val['x'])) for (_, edge_val) in AET.items()]
+        x_values = [int(edge_val['x']) for (_, edge_val) in AET.items()]
         x_values.sort()
         fill(x_values, y, painter)
         increment_x(AET)
         y += 1
-
