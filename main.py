@@ -29,14 +29,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.canvas.show_mesh = self.meshCheckBox.isChecked()
         self.canvas.show_fill = self.fillCheckBox.isChecked()
         self.canvas.update()
+
+    def on_lightning_changed(self):
+        kd = self.kdSlider.value() / 100
+        ks = self.ksSlider.value() / 100
+        m = self.mSlider.value()
+        light_source_position = self.lightSlider.value()
+        self.kdValueLabel.setText(str(kd))
+        self.ksValueLabel.setText(str(ks))
+        self.mValueLabel.setText(str(m))
+        self.lightValueLabel.setText(str(light_source_position))
+        self.canvas.update_on_lightning_change(kd, ks, m, light_source_position)
     
     def setupSlots(self):
+        # Triangulation changes
         self.triangulationSlider.valueChanged.connect(self.on_triangulation_changed)
+        # Rotation parameters change
         self.alphaSlider.valueChanged.connect(self.on_rotation_changed)
         self.betaSlider.valueChanged.connect(self.on_rotation_changed)
+        # Display parameters change
         self.polygonCheckBox.stateChanged.connect(self.on_display_changed)
         self.meshCheckBox.stateChanged.connect(self.on_display_changed)
         self.fillCheckBox.stateChanged.connect(self.on_display_changed)
+        # Lightning parameters change
+        self.kdSlider.valueChanged.connect(self.on_lightning_changed)
+        self.ksSlider.valueChanged.connect(self.on_lightning_changed)
+        self.mSlider.valueChanged.connect(self.on_lightning_changed)
+        self.lightSlider.valueChanged.connect(self.on_lightning_changed)
 
     def setupCanvas(self):
         control_points = utils.load_control_points("control_points.txt")

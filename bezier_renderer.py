@@ -111,6 +111,11 @@ class BezierCanvas(QWidget):
             self._bezier_surf.rotate(alpha, beta)
             self.update()
 
+    def update_on_lightning_change(self, kd: float, ks: float, m: int, 
+                                   light_source_position: int):
+        pass
+
+
     # 3D -> 2D projection (orthogonal projection onto XY plane)
     def project_point(self, point: QVector3D) -> QPointF:
         x = point.x() * self.scale
