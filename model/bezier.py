@@ -1,5 +1,6 @@
 from PySide6.QtGui import QVector3D
-from bezier_math import evaluate_bezier_point, rotate_by_Z_X
+from geometry.bezier import evaluate_bezier_point
+from geometry.general import rotate_by_Z_X
 
 class Vertex:
     def __init__(self, u: float, v: float, V: list[list[QVector3D]]):

@@ -9,7 +9,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setupSlots()
-        self.setupCanvas()
+        self.render("control_points.txt")
 
     def on_triangulation_changed(self, value):
         self.triangulationValueLabel.setText(str(value))
@@ -30,7 +30,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.canvas.show_fill = self.fillCheckBox.isChecked()
         self.canvas.update()
 
-    def on_lightning_changed(self):
+    def on_lighting_changed(self):
         kd = self.kdSlider.value() / 100
         ks = self.ksSlider.value() / 100
         m = self.mSlider.value()
@@ -39,7 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ksValueLabel.setText(str(ks))
         self.mValueLabel.setText(str(m))
         self.lightValueLabel.setText(str(light_source_position))
-        self.canvas.update_on_lightning_change(kd, ks, m, light_source_position)
+        self.canvas.update_on_lighting_change(kd, ks, m, light_source_position)
     
     def setupSlots(self):
         # Triangulation changes
@@ -51,14 +51,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.polygonCheckBox.stateChanged.connect(self.on_display_changed)
         self.meshCheckBox.stateChanged.connect(self.on_display_changed)
         self.fillCheckBox.stateChanged.connect(self.on_display_changed)
-        # Lightning parameters change
-        self.kdSlider.valueChanged.connect(self.on_lightning_changed)
-        self.ksSlider.valueChanged.connect(self.on_lightning_changed)
-        self.mSlider.valueChanged.connect(self.on_lightning_changed)
-        self.lightSlider.valueChanged.connect(self.on_lightning_changed)
+        # lighting parameters change
+        self.kdSlider.valueChanged.connect(self.on_lighting_changed)
+        self.ksSlider.valueChanged.connect(self.on_lighting_changed)
+        self.mSlider.valueChanged.connect(self.on_lighting_changed)
+        self.lightSlider.valueChanged.connect(self.on_lighting_changed)
 
-    def setupCanvas(self):
-        control_points = utils.load_control_points("control_points.txt")
+    def render(self, control_points_filename: str):
+        control_points = utils.load_control_points(control_points_filename)
         divisions = self.triangulationSlider.value()
         alpha = self.alphaSlider.value()
         beta = self.betaSlider.value()

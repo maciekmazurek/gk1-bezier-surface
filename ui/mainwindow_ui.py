@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel,
     QSizePolicy, QSlider, QSpacerItem, QStatusBar,
     QVBoxLayout, QWidget)
 
-from bezier_renderer import BezierCanvas
+from renderer import BezierCanvas
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

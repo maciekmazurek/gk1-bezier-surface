@@ -1,4 +1,4 @@
-from model import ControlPoint
+from model.bezier import ControlPoint
 
 def load_control_points(filename: str) -> list[list[ControlPoint]]:
     control_points = []

@@ -1,14 +1,13 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, Qt
+from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D
 from PySide6.QtCore import QPointF
-from numpy import poly
 from algorithms import scanline_filling
-from model import BezierSurface, ControlPoint
+from model.bezier import BezierSurface, ControlPoint
 
 class BezierCanvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._bezier_surf: BezierSurface = None
+        self.bezier_surf: BezierSurface = None
         # Display options
         self.show_polygon: bool = True
         self.show_mesh: bool = True
@@ -18,9 +17,9 @@ class BezierCanvas(QWidget):
 
     def initialize(self, control_points: list[list[ControlPoint]], 
                    divisions: int, alpha: float, beta: float):
-        self._bezier_surf = BezierSurface(control_points)
-        self._bezier_surf.generate_mesh(divisions)
-        self._bezier_surf.rotate(alpha, beta)
+        self.bezier_surf = BezierSurface(control_points)
+        self.bezier_surf.generate_mesh(divisions)
+        self.bezier_surf.rotate(alpha, beta)
         self.update()
 
     def paintEvent(self, event):
@@ -33,22 +32,22 @@ class BezierCanvas(QWidget):
             painter.translate(self.width() / 2, self.height() / 2)
             painter.scale(1, -1)  # Flip Y axis (in Qt Y grows downwards)
 
-            if self._bezier_surf is None:
+            if self.bezier_surf is None:
                 return
             if self.show_fill:
-                self._draw_fill(painter)
+                self.draw_fill(painter)
             if self.show_mesh:
-                self._draw_mesh(painter)
+                self.draw_mesh(painter)
             if self.show_polygon:
-                self._draw_polygon(painter)
+                self.draw_polygon(painter)
         finally:
             painter.end()
 
-    def _draw_polygon(self, painter: QPainter):
+    def draw_polygon(self, painter: QPainter):
         pen = QPen(QColor(0, 0, 0), 2)
         painter.setPen(pen)
 
-        control_points_rot = self._bezier_surf.cpoints_rot()
+        control_points_rot = self.bezier_surf.cpoints_rot()
 
         # Lines along u direction
         for i in range(4):
@@ -71,11 +70,11 @@ class BezierCanvas(QWidget):
                 p = self.project_point(cp)
                 painter.drawEllipse(p, 5, 5)
 
-    def _draw_mesh(self, painter: QPainter):
+    def draw_mesh(self, painter: QPainter):
         pen = QPen(QColor(128, 128, 255), 1)
         painter.setPen(pen)
 
-        for triangle in self._bezier_surf.mesh:
+        for triangle in self.bezier_surf.mesh:
             v0, v1, v2 = triangle.vertices
             
             p0 = self.project_point(v0.P_rot)
@@ -86,11 +85,11 @@ class BezierCanvas(QWidget):
             painter.drawLine(p1, p2)
             painter.drawLine(p2, p0)
 
-    def _draw_fill(self, painter: QPainter):
+    def draw_fill(self, painter: QPainter):
         painter.setPen(QPen(QColor(0, 255, 255), 1))
         painter.setBrush(QBrush(QColor(0, 255, 255)))
         
-        for triangle in self._bezier_surf.mesh:
+        for triangle in self.bezier_surf.mesh:
             v0, v1, v2 = triangle.vertices
             
             p0 = self.project_point(v0.P_rot)
@@ -101,20 +100,19 @@ class BezierCanvas(QWidget):
             scanline_filling(polygon, painter)
 
     def update_on_triangulation(self, divisions: int, alpha: float, beta: float):
-        if self._bezier_surf is not None:
-            self._bezier_surf.generate_mesh(divisions)
-            self._bezier_surf.rotate(alpha, beta)
+        if self.bezier_surf is not None:
+            self.bezier_surf.generate_mesh(divisions)
+            self.bezier_surf.rotate(alpha, beta)
             self.update()
 
     def update_on_rotation(self, alpha: float, beta: float):
-        if self._bezier_surf is not None:
-            self._bezier_surf.rotate(alpha, beta)
+        if self.bezier_surf is not None:
+            self.bezier_surf.rotate(alpha, beta)
             self.update()
 
-    def update_on_lightning_change(self, kd: float, ks: float, m: int, 
+    def update_on_lighting_change(self, kd: float, ks: float, m: int, 
                                    light_source_position: int):
         pass
-
 
     # 3D -> 2D projection (orthogonal projection onto XY plane)
     def project_point(self, point: QVector3D) -> QPointF:
