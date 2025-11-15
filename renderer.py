@@ -99,36 +99,70 @@ class BezierCanvas(QWidget):
         self._ensure_framebuffer()
         self.framebuffer.fill(Qt.transparent)
 
-        # Update light source position per frame
-        self.lighting_model.light_source.update_cache()
+        ls = self.lighting_model.light_source
+        ls.update_cache()
+        light_pos = ls.position_cache
+
+        # Kolor obiektu (stały w tej wersji)
+        Io_r = self.surf_color.redF()
+        Io_g = self.surf_color.greenF()
+        Io_b = self.surf_color.blueF()
 
         w, h = self.framebuffer.width(), self.framebuffer.height()
 
         for triangle in self.bezier_surf.mesh:
             v0, v1, v2 = triangle.vertices
-            
             p0 = self.project_point(v0.P_rot)
             p1 = self.project_point(v1.P_rot)
             p2 = self.project_point(v2.P_rot)
 
             polygon = [p0, p1, p2]
-            pixels = scanline_filling(polygon)
+            pixel_spans = scanline_filling(polygon)
 
-            def ipp(x, y):
-                return interpolate_point_params(x, y, p0, p1, p2, v0, v1, v2)
+            x0f, y0f = p0.x(), p0.y()
+            x1f, y1f = p1.x(), p1.y()
+            x2f, y2f = p2.x(), p2.y()
 
-            for (x, y) in pixels:
-                N, z = ipp(x, y)
-                # Przelicz współrzędne sceny -> koordynaty obrazu (0..w-1, 0..h-1)
-                xi = int(x + self.width() / 2)
-                yi = int(self.height() / 2 - y)
+            denom = (y1f - y2f) * (x0f - x2f) + (x2f - x1f) * (y0f - y2f)
+            if abs(denom) < 1e-12:
+                continue
 
-                if 0 <= xi < w and 0 <= yi < h:
-                    color = self.lighting_model.compute_lighting(QVector3D(x, y, z), N, self.surf_color)
-                    self.framebuffer.setPixelColor(xi, yi, color)
+            A0 = (y1f - y2f); B0 = (x2f - x1f); C0 = -A0 * x2f - B0 * y2f
+            A1 = (y2f - y0f); B1 = (x0f - x2f); C1 = -A1 * x2f - B1 * y2f
+            dw0_dx = A0 / denom
+            dw1_dx = A1 / denom
+
+            N0 = v0.N_rot; N1 = v1.N_rot; N2 = v2.N_rot
+            DN0 = N0 - N2; DN1 = N1 - N2
+
+            z0 = v0.P_rot.z(); z1 = v1.P_rot.z(); z2 = v2.P_rot.z()
+            Dz0 = z0 - z2; Dz1 = z1 - z2
+
+            for (y_scan, x_start, x_end) in pixel_spans:
+                y_float = float(y_scan)
+                w0 = (A0 * x_start + B0 * y_float + C0) / denom
+                w1 = (A1 * x_start + B1 * y_float + C1) / denom
+
+                for x in range(x_start, x_end + 1):
+                    # Interpolacja normalnych i z
+                    N = N2 + DN0 * w0 + DN1 * w1
+                    Nx, Ny, Nz = N.x(), N.y(), N.z()
+                    z = z2 + Dz0 * w0 + Dz1 * w1
+
+                    xi = int(x + self.width() / 2)
+                    yi = int(self.height() / 2 - y_scan)
+                    if 0 <= xi < w and 0 <= yi < h:
+                        pixel = self.lighting_model.compute_lighting_pixel(
+                            x, y_scan, z, Nx, Ny, Nz,
+                            Io_r, Io_g, Io_b, light_pos
+                        )
+                        self.framebuffer.setPixel(xi, yi, pixel)
+
+                    w0 += dw0_dx
+                    w1 += dw1_dx
 
         painter.save()
-        painter.resetTransform()  # rysujemy w koord. urządzenia (0,0) w lewym górnym rogu
+        painter.resetTransform()
         painter.drawImage(0, 0, self.framebuffer)
         painter.restore()
             

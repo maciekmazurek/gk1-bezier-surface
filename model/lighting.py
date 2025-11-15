@@ -1,8 +1,6 @@
-from PySide6.QtGui import QVector3D
-from PySide6.QtGui import QColor
-from geometry.lighting import cos_between_vectors, position_on_circle
-
-import time
+from PySide6.QtGui import QVector3D, QColor
+from geometry.lighting import position_on_circle
+import time, math
 
 class LightSource:
     def __init__(self, radius: float, angular_speed: float, Z: int):
@@ -30,54 +28,71 @@ class LightingModel:
         self.ks = ks
         self.m = m
         self.light_source = source
-        self.V = QVector3D(0, 0, 1)  # Assuming viewer is along Z axis
+        # Stałe kanały światła (uaktualniane gdy zmienisz kolor światła)
+        self._update_light_channels()
 
-    def compute_lighting(self, point: QVector3D, N: QVector3D, object_color: QColor):
-        N = N.normalized()
-        L = self.compute_L(point)
-        R = self.compute_R(N, L)
+    def _update_light_channels(self):
+        c = self.light_source.color
+        self.Il_r = c.redF()
+        self.Il_g = c.greenF()
+        self.Il_b = c.blueF()
 
-        light_color_rF = self.light_source.color.redF()
-        light_color_gF = self.light_source.color.greenF()
-        light_color_bF = self.light_source.color.blueF()
-        object_color_rF = object_color.redF()
-        object_color_gF = object_color.greenF()
-        object_color_bF = object_color.blueF()
+    def compute_lighting_pixel(self, x: float, y: float, z: float,
+                               Nx: float, Ny: float, Nz: float,
+                               Io_r: float, Io_g: float, Io_b: float,
+                               light_pos: QVector3D) -> int:
+        # Normalizacja N
+        lenN = math.sqrt(Nx*Nx + Ny*Ny + Nz*Nz)
+        if lenN == 0.0:
+            return 0xFF000000  # czarny
+        invLenN = 1.0 / lenN
+        Nx *= invLenN; Ny *= invLenN; Nz *= invLenN
 
-        red_diffuse = self.compute_diffuse(light_color_rF, object_color_rF, N, L)
-        red_specular = self.compute_specular(light_color_rF, object_color_rF, R)
-        red = int(min(red_diffuse + red_specular, 1.0) * 255)
+        # Wektor L = light_pos - point (x,y,z)
+        Lx = light_pos.x() - x
+        Ly = light_pos.y() - y
+        Lz = light_pos.z() - z
+        lenL = math.sqrt(Lx*Lx + Ly*Ly + Lz*Lz)
+        if lenL == 0.0:
+            return 0xFF000000
+        invLenL = 1.0 / lenL
+        Lx *= invLenL; Ly *= invLenL; Lz *= invLenL
 
-        green_diffuse = self.compute_diffuse(light_color_gF, object_color_gF, N, L)
-        green_specular = self.compute_specular(light_color_gF, object_color_gF, R)
-        green = int(min(green_diffuse + green_specular, 1.0) * 255)
+        # cos(N,L)
+        cos_NL = Nx*Lx + Ny*Ly + Nz*Lz
 
-        blue_diffuse = self.compute_diffuse(light_color_bF, object_color_bF, N, L)
-        blue_specular = self.compute_specular(light_color_bF, object_color_bF, R)
-        blue = int(min(blue_diffuse + blue_specular, 1.0) * 255)
+        if cos_NL > 0.0:
+            # R = 2 cos(N,L) N - L
+            Rx = 2.0 * cos_NL * Nx - Lx
+            Ry = 2.0 * cos_NL * Ny - Ly
+            Rz = 2.0 * cos_NL * Nz - Lz
+            # Normalizacja R
+            lenR = math.sqrt(Rx*Rx + Ry*Ry + Rz*Rz)
+            if lenR != 0.0:
+                invLenR = 1.0 / lenR
+                Rz *= invLenR  # potrzebny tylko Rz
+            else:
+                Rz = -1.0
+            cos_VR = Rz  # V = (0,0,1)
+        else:
+            cos_NL = 0.0
+            cos_VR = -1.0
 
-        return QColor(red, green, blue)
+        # Diffuse
+        diffuse_r = self.kd * self.Il_r * Io_r * cos_NL
+        diffuse_g = self.kd * self.Il_g * Io_g * cos_NL
+        diffuse_b = self.kd * self.Il_b * Io_b * cos_NL
 
-    def compute_diffuse(self, light_color: float, object_color: float, N: QVector3D, L: QVector3D):
-        cos_NL = cos_between_vectors(N, L)
-        if cos_NL < 0:
-            return 0
-        return self.kd * light_color * object_color * cos_NL
+        # Specular
+        if cos_VR > 0.0:
+            spec = self.ks * (cos_VR ** self.m)
+            spec_r = spec * self.Il_r * Io_r
+            spec_g = spec * self.Il_g * Io_g
+            spec_b = spec * self.Il_b * Io_b
+        else:
+            spec_r = spec_g = spec_b = 0.0
 
-    def compute_specular(self, light_color: float, object_color: float, R: QVector3D):
-        cos_VR = cos_between_vectors(self.V, R)
-        if cos_VR < 0:
-            return 0
-        return self.ks * light_color * object_color * (cos_VR ** self.m)
-
-    def compute_L(self, point: QVector3D) -> QVector3D:
-        light_pos = self.light_source.position_cache
-        L = light_pos - point
-        L.normalize()
-        return L
-    
-    def compute_R(self, N: QVector3D, L: QVector3D) -> QVector3D:
-        cos_NL = cos_between_vectors(N, L)
-        R = 2 * cos_NL * N - L
-        R.normalize()
-        return R
+        r = int(min(diffuse_r + spec_r, 1.0) * 255)
+        g = int(min(diffuse_g + spec_g, 1.0) * 255)
+        b = int(min(diffuse_b + spec_b, 1.0) * 255)
+        return 0xFF000000 | (r << 16) | (g << 8) | b
