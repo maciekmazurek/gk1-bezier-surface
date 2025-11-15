@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D
-from PySide6.QtCore import QPointF
+from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
+from PySide6.QtCore import QPointF, Qt
 from algorithms import scanline_filling
-from geometry.lightning import interpolate_point_params
+from geometry.lighting import interpolate_point_params
 from model.bezier import BezierSurface, ControlPoint
 from model.lighting import LightingModel, LightSource
 
@@ -19,6 +19,8 @@ class BezierCanvas(QWidget):
         self.scale = 50
         self.surf_color = QColor(0, 255, 255)
         self.surf_texture = None
+
+        self.framebuffer: QImage = None
 
     def initialize(self, control_points: list[list[ControlPoint]], 
                    divisions: int, alpha: float, beta: float, 
@@ -94,6 +96,14 @@ class BezierCanvas(QWidget):
             painter.drawLine(p2, p0)
 
     def draw_fill(self, painter: QPainter):
+        self._ensure_framebuffer()
+        self.framebuffer.fill(Qt.transparent)
+
+        # Update light source position per frame
+        self.lighting_model.light_source.update_cache()
+
+        w, h = self.framebuffer.width(), self.framebuffer.height()
+
         for triangle in self.bezier_surf.mesh:
             v0, v1, v2 = triangle.vertices
             
@@ -103,12 +113,24 @@ class BezierCanvas(QWidget):
 
             polygon = [p0, p1, p2]
             pixels = scanline_filling(polygon)
-            ipp = lambda x, y: interpolate_point_params(x, y, p0, p1, p2, v0, v1, v2)
+
+            def ipp(x, y):
+                return interpolate_point_params(x, y, p0, p1, p2, v0, v1, v2)
+
             for (x, y) in pixels:
                 N, z = ipp(x, y)
-                color = self.lighting_model.compute_lighting(QVector3D(x, y, z), N, self.surf_color)
-                painter.setPen(QPen(color))
-                painter.drawPoint(x, y)
+                # Przelicz współrzędne sceny -> koordynaty obrazu (0..w-1, 0..h-1)
+                xi = int(x + self.width() / 2)
+                yi = int(self.height() / 2 - y)
+
+                if 0 <= xi < w and 0 <= yi < h:
+                    color = self.lighting_model.compute_lighting(QVector3D(x, y, z), N, self.surf_color)
+                    self.framebuffer.setPixelColor(xi, yi, color)
+
+        painter.save()
+        painter.resetTransform()  # rysujemy w koord. urządzenia (0,0) w lewym górnym rogu
+        painter.drawImage(0, 0, self.framebuffer)
+        painter.restore()
             
     def update_on_triangulation(self, divisions: int, alpha: float, beta: float):
         if self.bezier_surf is not None:
@@ -128,7 +150,7 @@ class BezierCanvas(QWidget):
         self.update()
 
     def update_on_light_source_change(self, light_source_Z: int):
-        self.lighting_model.lighting_source.Z = light_source_Z
+        self.lighting_model.light_source.Z = light_source_Z
         self.update()
 
     # 3D -> 2D projection (orthogonal projection onto XY plane)
@@ -136,3 +158,10 @@ class BezierCanvas(QWidget):
         x = point.x() * self.scale
         y = point.y() * self.scale
         return QPointF(x, y)
+    
+    # Pomocnicze: alokacja/realokacja bufora po zmianie rozmiaru
+    def _ensure_framebuffer(self):
+        w, h = self.width(), self.height()
+        if self.framebuffer is None or self.framebuffer.width() != w or self.framebuffer.height() != h:
+            # ARGB32_Premultiplied — szybkie blendowanie i przezroczystość
+            self.framebuffer = QImage(w, h, QImage.Format_ARGB32_Premultiplied)

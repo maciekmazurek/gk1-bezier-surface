@@ -7,16 +7,16 @@ EPSILON = 1e-6
 def scanline_filling(P: list[QPointF]) -> list[tuple[int, int]]:
     def update_AET(curr_idx: int, prev_idx: int, next_idx: int, P: list[QPointF], AET: dict):
         # Updating previous edge
-        prev_edge = eval_AET_edge(P[prev_idx], P[curr_idx], y)
         if P[prev_idx].y() >= P[curr_idx].y():
+            prev_edge = eval_AET_edge(P[prev_idx], P[curr_idx], y)
             if prev_edge is not None:
                 AET[(prev_idx, curr_idx)] = prev_edge
         else:
             AET.pop((prev_idx, curr_idx), None)
 
         # Updating next edge
-        next_edge = eval_AET_edge(P[curr_idx], P[next_idx], y)
         if P[next_idx].y() >= P[curr_idx].y():
+            next_edge = eval_AET_edge(P[curr_idx], P[next_idx], y)
             if next_edge is not None:
                 AET[(curr_idx, next_idx)] = next_edge
         else:
