@@ -4,7 +4,7 @@ import math
 
 EPSILON = 1e-6
 
-def scanline_filling(P: list[QPointF], painter: QPainter):
+def scanline_filling(P: list[QPointF]) -> list[tuple[int, int]]:
     def update_AET(curr_idx: int, prev_idx: int, next_idx: int, P: list[QPointF], AET: dict):
         # Updating previous edge
         prev_edge = eval_AET_edge(P[prev_idx], P[curr_idx], y)
@@ -47,11 +47,12 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
             'inv_m': inv_m
         }
 
-    def fill(x_values: list[int], y: int, painter: QPainter):
+    def fill(x_values: list[int], y: int, pixels_filled: list):
         for i in range(0, len(x_values), 2):
             x0 = x_values[i]
             x1 = x_values[i + 1]
-            painter.drawLine(x0, y, x1, y)
+            for x in range(x0, x1):
+                pixels_filled.append((x, y))
     
     def increment_x(AET: dict):
         for _, edge_val in AET.items():
@@ -59,8 +60,9 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
 
     n = len(P)
     if n < 3:
-        return
+        return []
 
+    pixels_filled = []
     ind = sorted(range(n), key=lambda index: P[index].y())
     y_min = math.ceil(P[ind[0]].y())
     y_max = math.ceil(P[ind[n - 1]].y()) - 1
@@ -77,6 +79,8 @@ def scanline_filling(P: list[QPointF], painter: QPainter):
             i += 1
         x_values = [math.ceil(edge_val['x']) for (_, edge_val) in AET.items()]
         x_values.sort()
-        fill(x_values, y, painter)
+        fill(x_values, y, pixels_filled)
         increment_x(AET)
         y += 1
+
+    return pixels_filled

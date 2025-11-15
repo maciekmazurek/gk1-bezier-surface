@@ -30,16 +30,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.canvas.show_fill = self.fillCheckBox.isChecked()
         self.canvas.update()
 
-    def on_lighting_changed(self):
+    def on_lighting_model_changed(self):
         kd = self.kdSlider.value() / 100
         ks = self.ksSlider.value() / 100
         m = self.mSlider.value()
-        light_source_position = self.lightSlider.value()
         self.kdValueLabel.setText(str(kd))
         self.ksValueLabel.setText(str(ks))
         self.mValueLabel.setText(str(m))
-        self.lightValueLabel.setText(str(light_source_position))
-        self.canvas.update_on_lighting_change(kd, ks, m, light_source_position)
+        self.canvas.update_on_lighting_model_change(kd, ks, m)
+
+    def on_light_source_changed(self):
+        light_source_Z = self.lightSlider.value()
+        self.lightValueLabel.setText(str(light_source_Z))
+        self.canvas.update_on_light_source_change(light_source_Z)
     
     def setupSlots(self):
         # Triangulation changes
@@ -52,17 +55,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.meshCheckBox.stateChanged.connect(self.on_display_changed)
         self.fillCheckBox.stateChanged.connect(self.on_display_changed)
         # lighting parameters change
-        self.kdSlider.valueChanged.connect(self.on_lighting_changed)
-        self.ksSlider.valueChanged.connect(self.on_lighting_changed)
-        self.mSlider.valueChanged.connect(self.on_lighting_changed)
-        self.lightSlider.valueChanged.connect(self.on_lighting_changed)
+        self.kdSlider.valueChanged.connect(self.on_lighting_model_changed)
+        self.ksSlider.valueChanged.connect(self.on_lighting_model_changed)
+        self.mSlider.valueChanged.connect(self.on_lighting_model_changed)
+        self.lightSlider.valueChanged.connect(self.on_light_source_changed)
 
     def render(self, control_points_filename: str):
         control_points = utils.load_control_points(control_points_filename)
         divisions = self.triangulationSlider.value()
         alpha = self.alphaSlider.value()
         beta = self.betaSlider.value()
-        self.canvas.initialize(control_points, divisions, alpha, beta)
+        kd = self.kdSlider.value() / 100
+        ks = self.ksSlider.value() / 100
+        m = self.mSlider.value()
+        light_source_Z = self.lightSlider.value()
+        self.canvas.initialize(control_points, divisions, alpha, beta, kd, ks, m, light_source_Z)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
