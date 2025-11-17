@@ -453,13 +453,13 @@
            </size>
           </property>
           <property name="minimum">
-           <number>-10</number>
+           <number>0</number>
           </property>
           <property name="maximum">
-           <number>10</number>
+           <number>6</number>
           </property>
           <property name="value">
-           <number>5</number>
+           <number>3</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -469,7 +469,7 @@
         <item>
          <widget class="QLabel" name="lightValueLabel">
           <property name="text">
-           <string>5</string>
+           <string>3</string>
           </property>
          </widget>
         </item>
@@ -554,7 +554,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>17</height>
     </rect>
    </property>
   </widget>

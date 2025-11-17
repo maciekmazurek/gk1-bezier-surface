@@ -29,7 +29,7 @@ class BezierCanvas(QWidget):
         self.bezier_surf = BezierSurface(control_points)
         self.bezier_surf.generate_mesh(divisions)
         self.bezier_surf.rotate(alpha, beta)
-        light_source = LightSource(radius=0.5 * self.scale, angular_speed=0.1 * self.scale, Z=light_source_Z)
+        light_source = LightSource(radius=4.5, angular_speed=0.35, Z=light_source_Z)
         self.lighting_model = LightingModel(kd, ks, m, light_source)
         self.update()
 

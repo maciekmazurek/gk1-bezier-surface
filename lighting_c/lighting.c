@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct {
     float x, y, z;
@@ -31,22 +32,17 @@ static inline void normalize(Vector3D *v) {
     }
 }
 
-static inline void swapVertices(Vertex *a, Vertex *b) {
+static inline void swap_vertices(Vertex *a, Vertex *b) {
     Vertex temp = *a;
     *a = *b;
     *b = temp;
 }
 
-static inline void sortVertices(Triangle *T) {
-    if (T->v[0].p.y > T->v[1].p.y) {
-        swapVertices(&T->v[0], &T->v[1]);
-    }
-    if (T->v[0].p.y > T->v[2].p.y) {
-        swapVertices(&T->v[0], &T->v[2]);
-    }
-    if (T->v[1].p.y > T->v[2].p.y) {
-        swapVertices(&T->v[1], &T->v[2]);
-    }
+static inline void sort_vertices(Triangle *T) {
+    // Bubble sort of 3 vertices by y-coordinate
+    if (T->v[0].p.y > T->v[1].p.y) swap_vertices(&T->v[0], &T->v[1]);
+    if (T->v[0].p.y > T->v[2].p.y) swap_vertices(&T->v[0], &T->v[2]);
+    if (T->v[1].p.y > T->v[2].p.y) swap_vertices(&T->v[1], &T->v[2]);
 }
 
 static inline uint32_t shade_pixel(const Vector3D *pos,
@@ -61,27 +57,33 @@ static inline uint32_t shade_pixel(const Vector3D *pos,
     normalize(&L);
 
     float cos_nl = n.x*L.x + n.y*L.y + n.z*L.z;
-    if (cos_nl < 0.f) cos_nl = 0.f;
+    float cos_vr = -1.f;
 
+    if (cos_nl > 0.f) {
+        Vector3D R = (Vector3D){
+            2.f*cos_nl*n.x - L.x,
+            2.f*cos_nl*n.y - L.y,
+            2.f*cos_nl*n.z - L.z
+        };
+        normalize(&R);
+        cos_vr = R.z;           // V = (0,0,1)
+    } else {
+        cos_nl = 0.f;           // brak diffuse i specular
+    }
+
+    float il_io_r = P->il_r * P->io_r;
+    float il_io_g = P->il_g * P->io_g;
+    float il_io_b = P->il_b * P->io_b;
     float kd_cos_nl = P->kd * cos_nl;
-    float diffuse_r = kd_cos_nl * P->il_r * P->io_r;
-    float diffuse_g = kd_cos_nl * P->il_g * P->io_g;
-    float diffuse_b = kd_cos_nl * P->il_b * P->io_b;
-
-    Vector3D R = {
-        2.f*cos_nl*n.x - L.x,
-        2.f*cos_nl*n.y - L.y,
-        2.f*cos_nl*n.z - L.z
-    };
-    normalize(&R);
-
-    float cos_vr = R.z;
-    if (cos_vr < 0.f) cos_vr = 0.f;
-
     float ks_cos_m_vr = (cos_vr>0.f) ? P->ks * powf(cos_vr,(float)P->m) : 0.f;
-    float specular_r = ks_cos_m_vr * P->il_r * P->io_r;
-    float specular_g = ks_cos_m_vr * P->il_g * P->io_g;
-    float specular_b = ks_cos_m_vr * P->il_b * P->io_b;
+
+    float diffuse_r = kd_cos_nl * il_io_r;
+    float diffuse_g = kd_cos_nl * il_io_g;
+    float diffuse_b = kd_cos_nl * il_io_b;
+
+    float specular_r = ks_cos_m_vr * il_io_r;
+    float specular_g = ks_cos_m_vr * il_io_g;
+    float specular_b = ks_cos_m_vr * il_io_b;
 
     float r = diffuse_r + specular_r;
     float g = diffuse_g + specular_g;
@@ -99,7 +101,7 @@ static void fill_triangle(Triangle *T,
                           uint32_t *framebuffer, int W, int H,
                           int off_x, int off_y) {
     // Sortowanie wierzchołków rosnąco wg y
-    sortVertices(T);
+    sort_vertices(T);
 
     // Rozpakowanie do lokalnych (kopie – 6 floatów jak wcześniej)
     float x0=T->v[0].p.x, y0=T->v[0].p.y, z0=T->v[0].p.z;
@@ -120,7 +122,7 @@ static void fill_triangle(Triangle *T,
 
     int y_start = (int)ceilf(y0);
     int y_end   = (int)ceilf(y2);
-    for (int yi=y_start; yi<y_end; ++yi) {
+    for (int yi = y_start; yi < y_end; ++yi) {
         float y = (float)yi;
         if (y < y0 || y >= y2) continue;
 
