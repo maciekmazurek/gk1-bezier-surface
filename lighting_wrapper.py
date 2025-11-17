@@ -1,70 +1,65 @@
-import ctypes
-import numpy as np
+import ctypes, numpy as np
 from pathlib import Path
 from PySide6.QtGui import QImage
 
-_lib_path = Path(__file__).parent / "lighting_c" / "lighting.dll"
-_lib = ctypes.CDLL(str(_lib_path))
+class VertexC(ctypes.Structure):
+    _fields_ = [
+        ("x", ctypes.c_float), ("y", ctypes.c_float), ("z", ctypes.c_float),
+        ("nx", ctypes.c_float), ("ny", ctypes.c_float), ("nz", ctypes.c_float),
+    ]
 
+class TriangleC(ctypes.Structure):
+    _fields_ = [("v", VertexC * 3)]
+
+class LightingParamsC(ctypes.Structure):
+    _fields_ = [
+        ("kd", ctypes.c_float), ("ks", ctypes.c_float),
+        ("m", ctypes.c_int),
+        ("lx", ctypes.c_float), ("ly", ctypes.c_float), ("lz", ctypes.c_float),
+        ("io_r", ctypes.c_float), ("io_g", ctypes.c_float), ("io_b", ctypes.c_float),
+        ("il_r", ctypes.c_float), ("il_g", ctypes.c_float), ("il_b", ctypes.c_float),
+    ]
+
+_lib = ctypes.CDLL(str(Path(__file__).parent / "lighting_c" / "lighting.dll"))
 _lib.fill_surface.argtypes = [
-    ctypes.POINTER(ctypes.c_float),  # triangles
-    ctypes.c_int,                    # tri_count
-    ctypes.c_float,                  # kd
-    ctypes.c_float,                  # ks
-    ctypes.c_int,                    # m
-    ctypes.c_float, ctypes.c_float, ctypes.c_float,  # lx, ly, lz
-    ctypes.c_float, ctypes.c_float, ctypes.c_float,  # io_r, io_g, io_b
-    ctypes.c_float, ctypes.c_float, ctypes.c_float,  # il_r, il_g, il_b
-    ctypes.POINTER(ctypes.c_uint32), # img_ptr
-    ctypes.c_int, ctypes.c_int,      # img_w, img_h
-    ctypes.c_int, ctypes.c_int,      # offset_x, offset_y
+    ctypes.POINTER(TriangleC), ctypes.c_int,
+    ctypes.POINTER(LightingParamsC),
+    ctypes.POINTER(ctypes.c_uint32),
+    ctypes.c_int, ctypes.c_int,
+    ctypes.c_int, ctypes.c_int
 ]
 _lib.fill_surface.restype = None
 
 def fill_surface_c(triangles_list, kd, ks, m, light_pos, io_color, il_color,
                    framebuffer: QImage, scale: float):
-    """
-    triangles_list: lista trójkątów (każdy to 3 wierzchołki Vertex)
-    kd, ks, m: parametry oświetlenia
-    light_pos: QVector3D pozycji światła
-    io_color, il_color: QColor obiekt/światło
-    framebuffer: QImage do wypełnienia
-    """
-    # 1) spłaszcz trójkąty i PRZESKALUJ x,y do przestrzeni ekranu
-    tri_data = []
-    for tri in triangles_list:
-        for v in tri.vertices:
-            p = v.P_rot
-            n = v.N_rot
-            tri_data.extend([p.x() * scale, p.y() * scale, p.z(),
-                             n.x(), n.y(), n.z()])
-    tri_array = np.asarray(tri_data, dtype=np.float32)
-    tri_ptr_c = tri_array.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     tri_count = len(triangles_list)
+    TriArrayType = TriangleC * tri_count
+    tri_array = TriArrayType()
+    for i, tri in enumerate(triangles_list):
+        for j, v in enumerate(tri.vertices):
+            p = v.P_rot; n = v.N_rot
+            tri_array[i].v[j].x = p.x() * scale
+            tri_array[i].v[j].y = p.y() * scale
+            tri_array[i].v[j].z = p.z()
+            tri_array[i].v[j].nx = n.x()
+            tri_array[i].v[j].ny = n.y()
+            tri_array[i].v[j].nz = n.z()
 
-    # 2) kolory i światło
-    io_r, io_g, io_b = io_color.redF(), io_color.greenF(), io_color.blueF()
-    il_r, il_g, il_b = il_color.redF(), il_color.greenF(), il_color.blueF()
-    lx, ly, lz = light_pos.x(), light_pos.y(), light_pos.z()
+    params = LightingParamsC()
+    params.kd = kd; params.ks = ks; params.m = m
+    params.lx = light_pos.x(); params.ly = light_pos.y(); params.lz = light_pos.z()
+    params.io_r = io_color.redF(); params.io_g = io_color.greenF(); params.io_b = io_color.blueF()
+    params.il_r = il_color.redF(); params.il_g = il_color.greenF(); params.il_b = il_color.blueF()
 
-    # 3) wskaźnik do bufora QImage bez kopiowania
     assert framebuffer.format() in (QImage.Format_ARGB32, QImage.Format_ARGB32_Premultiplied)
-    img_w, img_h = framebuffer.width(), framebuffer.height()
-    buf = framebuffer.bits()             # memoryview
-    # Uwaga: dla ARGB32 bytesPerLine == 4*width, więc możemy użyć (h, w)
-    np_img = np.ndarray((img_h, img_w), dtype=np.uint32, buffer=buf)
-    img_ptr_c = np_img.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
+    W, H = framebuffer.width(), framebuffer.height()
+    buf = framebuffer.bits()
+    np_img = np.ndarray((H, W), dtype=np.uint32, buffer=buf)
+    img_ptr = np_img.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
 
-    offset_x = img_w // 2
-    offset_y = img_h // 2
+    off_x = W // 2
+    off_y = H // 2
 
-    _lib.fill_surface(
-        tri_ptr_c, tri_count,
-        kd, ks, m,
-        lx, ly, lz,
-        io_r, io_g, io_b,
-        il_r, il_g, il_b,
-        img_ptr_c,
-        img_w, img_h,
-        offset_x, offset_y
-    )
+    _lib.fill_surface(tri_array, tri_count, ctypes.byref(params),
+                      img_ptr, W, H, off_x, off_y)
+    
