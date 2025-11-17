@@ -31,6 +31,24 @@ static inline void normalize(Vector3D *v) {
     }
 }
 
+static inline void swapVertices(Vertex *a, Vertex *b) {
+    Vertex temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+static inline void sortVertices(Triangle *T) {
+    if (T->v[0].p.y > T->v[1].p.y) {
+        swapVertices(&T->v[0], &T->v[1]);
+    }
+    if (T->v[0].p.y > T->v[2].p.y) {
+        swapVertices(&T->v[0], &T->v[2]);
+    }
+    if (T->v[1].p.y > T->v[2].p.y) {
+        swapVertices(&T->v[1], &T->v[2]);
+    }
+}
+
 static inline uint32_t shade_pixel(const Vector3D *pos,
                                    Vector3D n,
                                    const LightingParams *P) {
@@ -76,10 +94,13 @@ static inline uint32_t shade_pixel(const Vector3D *pos,
     return 0xFF000000u | ((uint32_t)(r*255.f)<<16) | ((uint32_t)(g*255.f)<<8) | (uint32_t)(b*255.f);
 }
 
-static void fill_triangle(const Triangle *T,
+static void fill_triangle(Triangle *T,
                           const LightingParams *P,
                           uint32_t *framebuffer, int W, int H,
                           int off_x, int off_y) {
+    // Sortowanie wierzchołków rosnąco wg y
+    sortVertices(T);
+
     // Rozpakowanie do lokalnych (kopie – 6 floatów jak wcześniej)
     float x0=T->v[0].p.x, y0=T->v[0].p.y, z0=T->v[0].p.z;
     float nx0=T->v[0].n.x, ny0=T->v[0].n.y, nz0=T->v[0].n.z;
@@ -87,17 +108,6 @@ static void fill_triangle(const Triangle *T,
     float nx1=T->v[1].n.x, ny1=T->v[1].n.y, nz1=T->v[1].n.z;
     float x2=T->v[2].p.x, y2=T->v[2].p.y, z2=T->v[2].p.z;
     float nx2=T->v[2].n.x, ny2=T->v[2].n.y, nz2=T->v[2].n.z;
-
-    // Sortowanie po Y (jak wcześniej) ...
-    if (y0 > y1) { float tx=x0,ty=y0,tz=z0,tnx=nx0,tny=ny0,tnz=nz0;
-        x0=x1;y0=y1;z0=z1;nx0=nx1;ny0=ny1;nz0=nz1;
-        x1=tx;y1=ty;z1=tz;nx1=tnx;ny1=tny;nz1=tnz; }
-    if (y0 > y2) { float tx=x0,ty=y0,tz=z0,tnx=nx0,tny=ny0,tnz=nz0;
-        x0=x2;y0=y2;z0=z2;nx0=nx2;ny0=ny2;nz0=nz2;
-        x2=tx;y2=ty;z2=tz;nx2=tnx;ny2=tny;nz2=tnz; }
-    if (y1 > y2) { float tx=x1,ty=y1,tz=z1,tnx=nx1,tny=ny1,tnz=nz1;
-        x1=x2;y1=y2;z1=z2;nx1=nx2;ny1=ny2;nz1=tnz;
-        x2=tx;y2=ty;z2=tz;nx2=tnx;ny2=tny;nz2=tnz; }
 
     float dy02 = y2 - y0;
     if (fabsf(dy02) < 1e-6f) return;
@@ -150,7 +160,7 @@ static void fill_triangle(const Triangle *T,
     }
 }
 
-void fill_surface(const Triangle *tris, int tri_count,
+void fill_surface(Triangle *tris, int tri_count,
                   const LightingParams *params,
                   uint32_t *framebuffer, int W, int H,
                   int off_x, int off_y) {
