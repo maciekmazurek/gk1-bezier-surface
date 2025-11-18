@@ -1,10 +1,12 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
-from PySide6.QtCore import QPointF, Qt, QTimer, QElapsedTimer
+from PySide6.QtCore import QPointF, Qt
 from model.bezier import BezierSurface, ControlPoint
 from model.lighting import LightingModel, LightSource
 from lighting_wrapper import fill_surface_c
 from model.animation import Animation
+
+import config
 
 class BezierCanvas(QWidget):
     def __init__(self, parent=None):
@@ -22,7 +24,7 @@ class BezierCanvas(QWidget):
 
         self.framebuffer: QImage = None
 
-        self.animation = Animation(self._on_anim_tick, fps=60)
+        self.animation = Animation(self._on_anim_tick, fps=config.ANIMATION_FPS)
 
     def initialize(self, control_points: list[list[ControlPoint]], 
                    divisions: int, alpha: float, beta: float, 
@@ -30,7 +32,7 @@ class BezierCanvas(QWidget):
         self.bezier_surf = BezierSurface(control_points)
         self.bezier_surf.generate_mesh(divisions)
         self.bezier_surf.rotate(alpha, beta)
-        light_source = LightSource(radius=4.5*3.5, angular_speed=0.35 * 3, Z=light_source_Z)
+        light_source = LightSource(light_source_Z)
         self.lighting_model = LightingModel(kd, ks, m, light_source)
         self.animation.run()
         self.update()
@@ -137,17 +139,25 @@ class BezierCanvas(QWidget):
             self.bezier_surf.rotate(alpha, beta)
             self.update()
 
-    def update_on_lighting_model_change(self, kd: float, ks: float, m: int):
+    def update_on_lighting_model_changed(self, kd: float, ks: float, m: int):
         self.lighting_model.kd = kd
         self.lighting_model.ks = ks
         self.lighting_model.m = m
         self.update()
 
-    def update_on_light_source_change(self, light_source_Z: int):
+    def update_on_light_source_changed(self, light_source_Z: int):
         self.lighting_model.light_source.Z = light_source_Z
         self.update()
 
-    def update_on_animation_pause(self):
+    def update_on_light_color_changed(self, new_color: QColor):
+        self.lighting_model.light_source.color = new_color
+        self.update()
+
+    def update_on_surface_color_changed(self, new_color: QColor):
+        self.surf_color = new_color
+        self.update()
+
+    def update_on_animation_paused_resumed(self):
         if self.animation.paused:
             self.animation.resume()
         else:

@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog
 from ui.mainwindow_ui import Ui_MainWindow
+from pathlib import Path
 
 import sys
 import utils
@@ -9,7 +10,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setupSlots()
-        self.render("control_points.txt")
+        control_points_path = str(Path(__file__).resolve().parent / "resources" / "control_points.txt")
+        self.render(control_points_path)
 
     def on_triangulation_changed(self, value):
         self.triangulationValueLabel.setText(str(value))
@@ -37,15 +39,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.kdValueLabel.setText(str(kd))
         self.ksValueLabel.setText(str(ks))
         self.mValueLabel.setText(str(m))
-        self.canvas.update_on_lighting_model_change(kd, ks, m)
+        self.canvas.update_on_lighting_model_changed(kd, ks, m)
 
     def on_light_source_changed(self):
         light_source_Z = self.lightSlider.value()
         self.lightValueLabel.setText(str(light_source_Z))
-        self.canvas.update_on_light_source_change(light_source_Z)
+        self.canvas.update_on_light_source_changed(light_source_Z)
 
-    def on_animation_pause_changed(self):
-        animation_paused = self.canvas.update_on_animation_pause()
+    def on_light_color_changed(self):
+        new_color = QColorDialog.getColor(self.canvas.lighting_model.light_source.color, self, "Select light color")
+        if new_color.isValid():
+            self.canvas.update_on_light_color_changed(new_color)
+
+    def on_surface_color_changed(self):
+        new_color = QColorDialog.getColor(self.canvas.surf_color, self, "Select surface color")
+        if new_color.isValid():
+            self.canvas.update_on_surface_color_changed(new_color)
+
+    def on_animation_paused_resumed(self):
+        animation_paused = self.canvas.update_on_animation_paused_resumed()
         if animation_paused:
             self.animationButton.setText("Resume animation")
         else:
@@ -66,8 +78,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ksSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.mSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.lightSlider.valueChanged.connect(self.on_light_source_changed)
+        # Surface color selection
+        self.surfaceColorButton.clicked.connect(self.on_surface_color_changed)
+        # Light color selection
+        self.lightColorButton.clicked.connect(self.on_light_color_changed)
         # Animation pause/resume
-        self.animationButton.clicked.connect(self.on_animation_pause_changed)
+        self.animationButton.clicked.connect(self.on_animation_paused_resumed)
 
     def render(self, control_points_filename: str):
         control_points = utils.load_control_points(control_points_filename)

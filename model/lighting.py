@@ -1,12 +1,17 @@
 from PySide6.QtGui import QVector3D, QColor
 from geometry.general import position_on_circle
 
+import config
+
 class LightSource:
-    def __init__(self, radius: float, angular_speed: float, Z: int):
+    def __init__(self, Z: int, 
+                 radius=config.LIGHT_SOURCE_RADIUS, 
+                 angular_speed=config.LIGHT_SOURCE_SPEED, 
+                 color=config.DEFAULT_LIGHT_COLOR):
+        self.Z = Z
         self.radius = radius
         self.angular_speed = angular_speed
-        self.Z = Z
-        self.color = QColor(255, 255, 255)  # White light
+        self.color = color
         self.position_cache = self.position(0)
 
     def position(self, time) -> QVector3D:
