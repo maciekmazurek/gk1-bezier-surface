@@ -1,8 +1,6 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
 from PySide6.QtCore import QPointF, Qt
-from algorithms import scanline_filling
-from geometry.lighting import interpolate_point_params
 from model.bezier import BezierSurface, ControlPoint
 from model.lighting import LightingModel, LightSource
 from lighting_wrapper import fill_surface_c
@@ -110,7 +108,7 @@ class BezierCanvas(QWidget):
             io_color=self.surf_color,
             il_color=self.lighting_model.light_source.color,
             framebuffer=self.framebuffer,
-            scale=self.scale             # PRZEKAZUJEMY SKALĘ PROJEKCJI
+            scale=self.scale
         )
 
         painter.save()
