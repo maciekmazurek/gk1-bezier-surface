@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
-from PySide6.QtCore import QPointF, Qt
+from PySide6.QtCore import QPointF, Qt, QTimer, QElapsedTimer
 from model.bezier import BezierSurface, ControlPoint
 from model.lighting import LightingModel, LightSource
 from lighting_wrapper import fill_surface_c
+from model.animation import Animation
 
 class BezierCanvas(QWidget):
     def __init__(self, parent=None):
@@ -21,14 +22,17 @@ class BezierCanvas(QWidget):
 
         self.framebuffer: QImage = None
 
+        self.animation = Animation(self._on_anim_tick, fps=60)
+
     def initialize(self, control_points: list[list[ControlPoint]], 
                    divisions: int, alpha: float, beta: float, 
                    kd: float, ks: float, m: int, light_source_Z: int):
         self.bezier_surf = BezierSurface(control_points)
         self.bezier_surf.generate_mesh(divisions)
         self.bezier_surf.rotate(alpha, beta)
-        light_source = LightSource(radius=4.5, angular_speed=0.35, Z=light_source_Z)
+        light_source = LightSource(radius=4.5*3.5, angular_speed=0.35 * 3, Z=light_source_Z)
         self.lighting_model = LightingModel(kd, ks, m, light_source)
+        self.animation.run()
         self.update()
 
     def paintEvent(self, event):
@@ -97,7 +101,9 @@ class BezierCanvas(QWidget):
     def draw_fill(self, painter: QPainter):
         self._ensure_framebuffer()
         self.framebuffer.fill(Qt.transparent)
-        self.lighting_model.light_source.update_cache()
+
+        if not self.animation.paused:
+            self.lighting_model.light_source.update_cache(self.animation.get_active_time())
 
         fill_surface_c(
             triangles_list=self.bezier_surf.mesh,
@@ -115,7 +121,11 @@ class BezierCanvas(QWidget):
         painter.resetTransform()
         painter.drawImage(0, 0, self.framebuffer)
         painter.restore()
-            
+
+    def _on_anim_tick(self):
+        if self.show_fill:
+            self.update()
+
     def update_on_triangulation(self, divisions: int, alpha: float, beta: float):
         if self.bezier_surf is not None:
             self.bezier_surf.generate_mesh(divisions)
@@ -136,6 +146,15 @@ class BezierCanvas(QWidget):
     def update_on_light_source_change(self, light_source_Z: int):
         self.lighting_model.light_source.Z = light_source_Z
         self.update()
+
+    def update_on_animation_pause(self):
+        if self.animation.paused:
+            self.animation.resume()
+        else:
+            self.animation.pause()
+        self.update()
+
+        return self.animation.paused
 
     # 3D -> 2D projection (orthogonal projection onto XY plane)
     def project_point(self, point: QVector3D) -> QPointF:

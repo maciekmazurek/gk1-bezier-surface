@@ -43,7 +43,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         light_source_Z = self.lightSlider.value()
         self.lightValueLabel.setText(str(light_source_Z))
         self.canvas.update_on_light_source_change(light_source_Z)
-    
+
+    def on_animation_pause_changed(self):
+        animation_paused = self.canvas.update_on_animation_pause()
+        if animation_paused:
+            self.animationButton.setText("Resume animation")
+        else:
+            self.animationButton.setText("Pause animation")
+
     def setupSlots(self):
         # Triangulation changes
         self.triangulationSlider.valueChanged.connect(self.on_triangulation_changed)
@@ -59,6 +66,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ksSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.mSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.lightSlider.valueChanged.connect(self.on_light_source_changed)
+        # Animation pause/resume
+        self.animationButton.clicked.connect(self.on_animation_pause_changed)
 
     def render(self, control_points_filename: str):
         control_points = utils.load_control_points(control_points_filename)
