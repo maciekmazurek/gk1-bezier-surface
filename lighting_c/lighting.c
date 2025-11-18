@@ -1,6 +1,5 @@
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 
 typedef struct {
     float x, y, z;
@@ -60,22 +59,24 @@ static inline uint32_t shade_pixel(const Vector3D *pos,
     float cos_vr = -1.f;
 
     if (cos_nl > 0.f) {
-        Vector3D R = (Vector3D){
+        Vector3D R = (Vector3D) {
             2.f*cos_nl*n.x - L.x,
             2.f*cos_nl*n.y - L.y,
             2.f*cos_nl*n.z - L.z
         };
         normalize(&R);
-        cos_vr = R.z;           // V = (0,0,1)
+        // Optimization simplification (we assume V = (0,0,-1))
+        // Should be fixed when introducing a variable vector V
+        cos_vr = -R.z;
     } else {
-        cos_nl = 0.f;           // brak diffuse i specular
+        cos_nl = 0.f;
     }
 
     float il_io_r = P->il_r * P->io_r;
     float il_io_g = P->il_g * P->io_g;
     float il_io_b = P->il_b * P->io_b;
     float kd_cos_nl = P->kd * cos_nl;
-    float ks_cos_m_vr = (cos_vr>0.f) ? P->ks * powf(cos_vr,(float)P->m) : 0.f;
+    float ks_cos_m_vr = (cos_vr > 0.f) ? P->ks * powf(cos_vr,(float)P->m) : 0.f;
 
     float diffuse_r = kd_cos_nl * il_io_r;
     float diffuse_g = kd_cos_nl * il_io_g;
@@ -93,14 +94,14 @@ static inline uint32_t shade_pixel(const Vector3D *pos,
     if (g > 1.f) g = 1.f;
     if (b > 1.f) b = 1.f;
 
-    return 0xFF000000u | ((uint32_t)(r*255.f)<<16) | ((uint32_t)(g*255.f)<<8) | (uint32_t)(b*255.f);
+    return 0xFF000000u | ((uint32_t)(r*255.f) << 16) | ((uint32_t)(g*255.f) << 8) | (uint32_t)(b*255.f);
 }
 
 static void fill_triangle(Triangle *T,
                           const LightingParams *P,
                           uint32_t *framebuffer, int W, int H,
                           int off_x, int off_y) {
-    // Sortowanie wierzchołków rosnąco wg y
+    // Sort vertices in ascending order by y
     sort_vertices(T);
 
     // Rozpakowanie do lokalnych (kopie – 6 floatów jak wcześniej)
@@ -166,6 +167,6 @@ void fill_surface(Triangle *tris, int tri_count,
                   const LightingParams *params,
                   uint32_t *framebuffer, int W, int H,
                   int off_x, int off_y) {
-    for (int i=0;i<tri_count;++i)
+    for (int i = 0; i < tri_count; ++i)
         fill_triangle(&tris[i], params, framebuffer, W, H, off_x, off_y);
 }
