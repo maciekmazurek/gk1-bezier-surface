@@ -278,26 +278,26 @@ class Ui_MainWindow(object):
 
         self.mainVerticalLayout.addLayout(self.lightHorizontalLayout)
 
-        self.surfaceColorLabel = QLabel(self.centralwidget)
-        self.surfaceColorLabel.setObjectName(u"surfaceColorLabel")
+        self.surfaceFillingLabel = QLabel(self.centralwidget)
+        self.surfaceFillingLabel.setObjectName(u"surfaceFillingLabel")
 
-        self.mainVerticalLayout.addWidget(self.surfaceColorLabel)
+        self.mainVerticalLayout.addWidget(self.surfaceFillingLabel)
 
-        self.surfaceColorHorizontalLayout = QHBoxLayout()
-        self.surfaceColorHorizontalLayout.setObjectName(u"surfaceColorHorizontalLayout")
-        self.solidRadioButton = QRadioButton(self.centralwidget)
-        self.solidRadioButton.setObjectName(u"solidRadioButton")
-        self.solidRadioButton.setChecked(True)
+        self.surfaceFillingHorizontalLayout = QHBoxLayout()
+        self.surfaceFillingHorizontalLayout.setObjectName(u"surfaceFillingHorizontalLayout")
+        self.solidColorRadioButton = QRadioButton(self.centralwidget)
+        self.solidColorRadioButton.setObjectName(u"solidColorRadioButton")
+        self.solidColorRadioButton.setChecked(True)
 
-        self.surfaceColorHorizontalLayout.addWidget(self.solidRadioButton)
+        self.surfaceFillingHorizontalLayout.addWidget(self.solidColorRadioButton)
 
         self.textureRadioButton = QRadioButton(self.centralwidget)
         self.textureRadioButton.setObjectName(u"textureRadioButton")
 
-        self.surfaceColorHorizontalLayout.addWidget(self.textureRadioButton)
+        self.surfaceFillingHorizontalLayout.addWidget(self.textureRadioButton)
 
 
-        self.mainVerticalLayout.addLayout(self.surfaceColorHorizontalLayout)
+        self.mainVerticalLayout.addLayout(self.surfaceFillingHorizontalLayout)
 
         self.lightColorButton = QPushButton(self.centralwidget)
         self.lightColorButton.setObjectName(u"lightColorButton")
@@ -359,8 +359,8 @@ class Ui_MainWindow(object):
         self.mValueLabel.setText(QCoreApplication.translate("MainWindow", u"50", None))
         self.lightLabel.setText(QCoreApplication.translate("MainWindow", u"Light source (Z)", None))
         self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"3", None))
-        self.surfaceColorLabel.setText(QCoreApplication.translate("MainWindow", u"Surface color", None))
-        self.solidRadioButton.setText(QCoreApplication.translate("MainWindow", u"Solid", None))
+        self.surfaceFillingLabel.setText(QCoreApplication.translate("MainWindow", u"Surface filling", None))
+        self.solidColorRadioButton.setText(QCoreApplication.translate("MainWindow", u"Solid color", None))
         self.textureRadioButton.setText(QCoreApplication.translate("MainWindow", u"Texture", None))
         self.lightColorButton.setText(QCoreApplication.translate("MainWindow", u"Select light color", None))
         self.surfaceColorButton.setText(QCoreApplication.translate("MainWindow", u"Select surface color", None))

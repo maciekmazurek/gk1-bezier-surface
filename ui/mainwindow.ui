@@ -476,18 +476,18 @@
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="surfaceColorLabel">
+       <widget class="QLabel" name="surfaceFillingLabel">
         <property name="text">
-         <string>Surface color</string>
+         <string>Surface filling</string>
         </property>
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="surfaceColorHorizontalLayout">
+       <layout class="QHBoxLayout" name="surfaceFillingHorizontalLayout">
         <item>
-         <widget class="QRadioButton" name="solidRadioButton">
+         <widget class="QRadioButton" name="solidColorRadioButton">
           <property name="text">
-           <string>Solid</string>
+           <string>Solid color</string>
           </property>
           <property name="checked">
            <bool>true</bool>

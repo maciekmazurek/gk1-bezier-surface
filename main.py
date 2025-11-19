@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog, QFileDialog
 from ui.mainwindow_ui import Ui_MainWindow
 
 import sys
@@ -10,7 +10,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setupSlots()
         control_points_relative_path = "resources/control_points.txt"
-        texture_relative_path = "resources/texture.png"
+        texture_relative_path = "resources/texture_1.png"
         self.render(utils.get_path(control_points_relative_path),
                     utils.get_path(texture_relative_path))
 
@@ -47,6 +47,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lightValueLabel.setText(str(light_source_Z))
         self.canvas.update_on_light_source_changed(light_source_Z)
 
+    def on_surface_filling_changed(self):
+        texture_enabled = self.textureRadioButton.isChecked()
+        self.canvas.update_on_surface_filling_changed(texture_enabled)
+
     def on_light_color_changed(self):
         new_color = QColorDialog.getColor(self.canvas.lighting_model.light_source.color, self, "Select light color")
         if new_color.isValid():
@@ -56,6 +60,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         new_color = QColorDialog.getColor(self.canvas.bezier_surface_graphics.color, self, "Select surface color")
         if new_color.isValid():
             self.canvas.update_on_surface_color_changed(new_color)
+
+    def on_upload_surface_texture(self):
+        texture_path, _ = QFileDialog.getOpenFileName(self, "Select texture image", utils.get_path("resources"), "Images (*.png *.jpg *.bmp)")
+        if texture_path:
+            texture = utils.load_texture(texture_path)
+            self.canvas.update_surface_texture(texture)
 
     def on_animation_paused_resumed(self):
         animation_paused = self.canvas.update_on_animation_paused_resumed()
@@ -79,10 +89,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ksSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.mSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.lightSlider.valueChanged.connect(self.on_light_source_changed)
+        # Surface filling change
+        self.textureRadioButton.toggled.connect(self.on_surface_filling_changed)
         # Surface color selection
         self.surfaceColorButton.clicked.connect(self.on_surface_color_changed)
         # Light color selection
         self.lightColorButton.clicked.connect(self.on_light_color_changed)
+        # Surface texture upload
+        self.surfaceTextureButton.clicked.connect(self.on_upload_surface_texture)
         # Animation pause/resume
         self.animationButton.clicked.connect(self.on_animation_paused_resumed)
 

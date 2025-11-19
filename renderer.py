@@ -156,12 +156,20 @@ class Canvas(QWidget):
         self.lighting_model.light_source.Z = light_source_Z
         self.update()
 
+    def update_on_surface_filling_changed(self, texture_enabled: bool):
+        self.bezier_surface_graphics.texture_enabled = texture_enabled
+        self.update()
+
     def update_on_light_color_changed(self, new_color: QColor):
         self.lighting_model.light_source.color = new_color
         self.update()
 
     def update_on_surface_color_changed(self, new_color: QColor):
         self.bezier_surface_graphics.color = new_color
+        self.update()
+
+    def update_surface_texture(self, texture: QImage):
+        self.bezier_surface_graphics.texture = texture
         self.update()
 
     def update_on_animation_paused_resumed(self):
