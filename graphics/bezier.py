@@ -10,7 +10,7 @@ class BezierSurfaceGraphics:
         self.show_fill = show_fill
         self.texture = texture
         self.color = color
-        self.texture_enabled = False
+        self.texture_enabled = True
 
     def rotate(self, alpha, beta):
         self.bezier_surface.rotate(alpha, beta)

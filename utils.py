@@ -25,7 +25,7 @@ def load_texture(texture_path: str) -> QImage:
     texture = QImage(texture_path)
     if texture.isNull():
         raise ValueError(f"[*] Failed to load image from {texture_path}")
-    return texture
+    return texture.convertToFormat(QImage.Format_ARGB32)
 
 def get_path(relative_path: str) -> str:
     return str(Path(__file__).resolve().parent / relative_path)

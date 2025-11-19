@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog
 from ui.mainwindow_ui import Ui_MainWindow
-from pathlib import Path
 
 import sys
 import utils
@@ -11,7 +10,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setupSlots()
         control_points_relative_path = "resources/control_points.txt"
-        texture_relative_path = "resources/sample_texture.png"
+        texture_relative_path = "resources/texture.png"
         self.render(utils.get_path(control_points_relative_path),
                     utils.get_path(texture_relative_path))
 

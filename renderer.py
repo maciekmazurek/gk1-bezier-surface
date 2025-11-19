@@ -102,6 +102,10 @@ class Canvas(QWidget):
         if not self.animation.paused:
             self.lighting_model.light_source.update_cache(self.animation.get_active_time())
 
+        texture = None
+        if self.bezier_surface_graphics.texture_enabled:
+            texture = self.bezier_surface_graphics.texture
+
         fill_surface_c(
             triangles_list=self.bezier_surface_graphics.bezier_surface.mesh,
             kd=self.lighting_model.kd,
@@ -111,7 +115,8 @@ class Canvas(QWidget):
             io_color=self.bezier_surface_graphics.color,
             il_color=self.lighting_model.light_source.color,
             framebuffer=self.framebuffer,
-            scale=self.scale
+            scale=self.scale,
+            texture_qimage=texture,
         )
 
         painter.save()
