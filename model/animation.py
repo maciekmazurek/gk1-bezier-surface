@@ -1,7 +1,9 @@
 from PySide6.QtCore import QTimer, QElapsedTimer
 
+import config
+
 class Animation:
-    def __init__(self, func, fps):
+    def __init__(self, func, fps=config.ANIMATION_FPS):
         self.interval_ms = int(1000 / max(1, fps))
         self.tick_timer = QTimer()
         self.tick_timer.timeout.connect(func)

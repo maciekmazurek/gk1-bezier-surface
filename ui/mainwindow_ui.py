@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel,
     QSizePolicy, QSlider, QSpacerItem, QStatusBar,
     QVBoxLayout, QWidget)
 
-from renderer import BezierCanvas
+from renderer import Canvas
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -31,7 +31,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.canvas = BezierCanvas(self.centralwidget)
+        self.canvas = Canvas(self.centralwidget)
         self.canvas.setObjectName(u"canvas")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)

@@ -1,37 +1,32 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
 from PySide6.QtCore import QPointF, Qt
-from model.bezier import BezierSurface, ControlPoint
+from model.bezier import ControlPoint
 from model.lighting import LightingModel, LightSource
 from lighting_wrapper import fill_surface_c
 from model.animation import Animation
+from graphics.bezier import BezierSurfaceGraphics
 
 import config
 
-class BezierCanvas(QWidget):
+class Canvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.bezier_surf: BezierSurface = None
+        self.bezier_surface_graphics = None
         self.lighting_model = None
-        # Display options
-        self.show_polygon: bool = True
-        self.show_mesh: bool = True
-        self.show_fill: bool = False
-        # Parameter for scaling the size of the bezier surface
-        self.scale = 50
-        self.surf_color = QColor(0, 255, 255)
-        self.surf_texture = None
-
         self.framebuffer: QImage = None
-
-        self.animation = Animation(self._on_anim_tick, fps=config.ANIMATION_FPS)
+        self.scale = config.SCALE
+        self.animation = Animation(self._on_anim_tick)
 
     def initialize(self, control_points: list[list[ControlPoint]], 
-                   divisions: int, alpha: float, beta: float, 
-                   kd: float, ks: float, m: int, light_source_Z: int):
-        self.bezier_surf = BezierSurface(control_points)
-        self.bezier_surf.generate_mesh(divisions)
-        self.bezier_surf.rotate(alpha, beta)
+                   texture: QImage, divisions: int, alpha: float, 
+                   beta: float, show_polygon: bool, show_mesh:bool, 
+                   show_fill:bool, kd: float, ks: float, m: int, 
+                   light_source_Z: int):
+        self.bezier_surface_graphics = BezierSurfaceGraphics(control_points,
+            texture, show_polygon, show_mesh, show_fill)
+        self.bezier_surface_graphics.generate_mesh(divisions)
+        self.bezier_surface_graphics.rotate(alpha, beta)
         light_source = LightSource(light_source_Z)
         self.lighting_model = LightingModel(kd, ks, m, light_source)
         self.animation.run()
@@ -47,13 +42,13 @@ class BezierCanvas(QWidget):
             painter.translate(self.width() / 2, self.height() / 2)
             painter.scale(1, -1)  # Flip Y axis (in Qt Y grows downwards)
 
-            if self.bezier_surf is None:
+            if self.bezier_surface_graphics is None:
                 return
-            if self.show_fill:
+            if self.bezier_surface_graphics.show_fill:
                 self.draw_fill(painter)
-            if self.show_mesh:
+            if self.bezier_surface_graphics.show_mesh:
                 self.draw_mesh(painter)
-            if self.show_polygon:
+            if self.bezier_surface_graphics.show_polygon:
                 self.draw_polygon(painter)
         finally:
             painter.end()
@@ -62,7 +57,7 @@ class BezierCanvas(QWidget):
         pen = QPen(QColor(0, 0, 0), 2)
         painter.setPen(pen)
 
-        control_points_rot = self.bezier_surf.cpoints_rot()
+        control_points_rot = self.bezier_surface_graphics.bezier_surface.cpoints_rot()
 
         # Lines along u direction
         for i in range(4):
@@ -89,7 +84,7 @@ class BezierCanvas(QWidget):
         pen = QPen(QColor(128, 128, 255), 1)
         painter.setPen(pen)
 
-        for triangle in self.bezier_surf.mesh:
+        for triangle in self.bezier_surface_graphics.bezier_surface.mesh:
             v0, v1, v2 = triangle.vertices
             
             p0 = self.project_point(v0.P_rot)
@@ -108,12 +103,12 @@ class BezierCanvas(QWidget):
             self.lighting_model.light_source.update_cache(self.animation.get_active_time())
 
         fill_surface_c(
-            triangles_list=self.bezier_surf.mesh,
+            triangles_list=self.bezier_surface_graphics.bezier_surface.mesh,
             kd=self.lighting_model.kd,
             ks=self.lighting_model.ks,
             m=self.lighting_model.m,
             light_pos=self.lighting_model.light_source.position_cache,
-            io_color=self.surf_color,
+            io_color=self.bezier_surface_graphics.color,
             il_color=self.lighting_model.light_source.color,
             framebuffer=self.framebuffer,
             scale=self.scale
@@ -125,18 +120,25 @@ class BezierCanvas(QWidget):
         painter.restore()
 
     def _on_anim_tick(self):
-        if self.show_fill:
+        if self.bezier_surface_graphics.show_fill:
             self.update()
 
     def update_on_triangulation(self, divisions: int, alpha: float, beta: float):
-        if self.bezier_surf is not None:
-            self.bezier_surf.generate_mesh(divisions)
-            self.bezier_surf.rotate(alpha, beta)
+        if self.bezier_surface_graphics is not None:
+            self.bezier_surface_graphics.generate_mesh(divisions)
+            self.bezier_surface_graphics.rotate(alpha, beta)
             self.update()
 
     def update_on_rotation(self, alpha: float, beta: float):
-        if self.bezier_surf is not None:
-            self.bezier_surf.rotate(alpha, beta)
+        if self.bezier_surface_graphics is not None:
+            self.bezier_surface_graphics.rotate(alpha, beta)
+            self.update()
+
+    def update_on_show_params_changed(self, show_polygon: bool, show_mesh: bool, show_fill: bool):
+        if self.bezier_surface_graphics is not None:
+            self.bezier_surface_graphics.show_polygon = show_polygon
+            self.bezier_surface_graphics.show_mesh = show_mesh
+            self.bezier_surface_graphics.show_fill = show_fill
             self.update()
 
     def update_on_lighting_model_changed(self, kd: float, ks: float, m: int):
@@ -154,7 +156,7 @@ class BezierCanvas(QWidget):
         self.update()
 
     def update_on_surface_color_changed(self, new_color: QColor):
-        self.surf_color = new_color
+        self.bezier_surface_graphics.color = new_color
         self.update()
 
     def update_on_animation_paused_resumed(self):

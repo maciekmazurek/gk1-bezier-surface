@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="BezierCanvas" name="canvas" native="true">
+     <widget class="Canvas" name="canvas" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -562,9 +562,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>BezierCanvas</class>
+   <class>Canvas</class>
    <extends>QWidget</extends>
-   <header>bezier_renderer.h</header>
+   <header>canvas.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
