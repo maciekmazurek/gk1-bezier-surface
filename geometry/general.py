@@ -43,3 +43,8 @@ def np_to_qt(vector):
 
 def qt_to_np(vector: QVector3D):
     return np.array([vector.x(), vector.y(), vector.z()], dtype=float)
+
+def position_on_circle(radius: float, angle: float):
+    x = radius * math.cos(angle)
+    y = radius * math.sin(angle)
+    return (x, y)

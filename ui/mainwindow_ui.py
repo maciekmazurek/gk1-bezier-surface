@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel,
     QSizePolicy, QSlider, QSpacerItem, QStatusBar,
     QVBoxLayout, QWidget)
 
-from renderer import BezierCanvas
+from renderer import Canvas
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -31,7 +31,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.canvas = BezierCanvas(self.centralwidget)
+        self.canvas = Canvas(self.centralwidget)
         self.canvas.setObjectName(u"canvas")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -263,9 +263,9 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.lightSlider.sizePolicy().hasHeightForWidth())
         self.lightSlider.setSizePolicy(sizePolicy1)
         self.lightSlider.setMinimumSize(QSize(120, 0))
-        self.lightSlider.setMinimum(-10)
-        self.lightSlider.setMaximum(10)
-        self.lightSlider.setValue(5)
+        self.lightSlider.setMinimum(0)
+        self.lightSlider.setMaximum(6)
+        self.lightSlider.setValue(3)
         self.lightSlider.setOrientation(Qt.Orientation.Horizontal)
 
         self.lightHorizontalLayout.addWidget(self.lightSlider)
@@ -329,7 +329,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QRect(0, 0, 800, 17))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -358,7 +358,7 @@ class Ui_MainWindow(object):
         self.mLabel.setText(QCoreApplication.translate("MainWindow", u"m (gloss)", None))
         self.mValueLabel.setText(QCoreApplication.translate("MainWindow", u"50", None))
         self.lightLabel.setText(QCoreApplication.translate("MainWindow", u"Light source (Z)", None))
-        self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"5", None))
+        self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"3", None))
         self.surfaceColorLabel.setText(QCoreApplication.translate("MainWindow", u"Surface color", None))
         self.solidRadioButton.setText(QCoreApplication.translate("MainWindow", u"Solid", None))
         self.textureRadioButton.setText(QCoreApplication.translate("MainWindow", u"Texture", None))
