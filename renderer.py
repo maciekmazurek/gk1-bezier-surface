@@ -177,6 +177,14 @@ class Canvas(QWidget):
         self.bezier_surface_graphics.texture = texture
         self.update()
 
+    def update_normal_map(self, normal_map: QImage):
+        self.bezier_surface_graphics.normal_map = normal_map
+        self.update()
+
+    def update_on_normal_mapping_changed(self, normal_mapping_enabled: bool):
+        self.bezier_surface_graphics.normal_mapping_enabled = normal_mapping_enabled
+        self.update()
+
     def update_on_animation_paused_resumed(self):
         if self.animation.paused:
             self.animation.resume()

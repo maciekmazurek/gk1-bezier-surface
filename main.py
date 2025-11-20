@@ -1,3 +1,4 @@
+import re
 from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog, QFileDialog
 from ui.mainwindow_ui import Ui_MainWindow
 
@@ -64,10 +65,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.canvas.update_on_surface_color_changed(new_color)
 
     def on_upload_surface_texture(self):
-        texture_path, _ = QFileDialog.getOpenFileName(self, "Select texture image", utils.get_path("resources"), "Images (*.png *.jpg *.bmp)")
-        if texture_path:
-            texture = utils.load_texture(texture_path)
+        texture = self.upload_image()
+        if texture is not None:
             self.canvas.update_surface_texture(texture)
+
+    def on_upload_normal_map(self):
+        normal_map = self.upload_image()
+        if normal_map is not None:
+            self.canvas.update_normal_map(normal_map)
+
+    def on_normal_mapping_param_changed(self):
+        normal_mapping_enabled = self.normalMapCheckBox.isChecked()
+        self.canvas.update_on_normal_mapping_changed(normal_mapping_enabled)
 
     def on_animation_paused_resumed(self):
         animation_paused = self.canvas.update_on_animation_paused_resumed()
@@ -75,6 +84,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.animationButton.setText("Resume animation")
         else:
             self.animationButton.setText("Pause animation")
+
+    def upload_image(self):
+        image_path, _ = QFileDialog.getOpenFileName(self, "Select image", 
+                                                    utils.get_path("resources"), 
+                                                    "Images (*.png *.jpg *.bmp)")
+        if image_path:
+            image = utils.load_texture(image_path)
+            return image
+        return None
 
     def setupSlots(self):
         # Triangulation changes
@@ -86,7 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.polygonCheckBox.stateChanged.connect(self.on_show_params_changed)
         self.meshCheckBox.stateChanged.connect(self.on_show_params_changed)
         self.fillCheckBox.stateChanged.connect(self.on_show_params_changed)
-        # lighting parameters change
+        # Lighting parameters change
         self.kdSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.ksSlider.valueChanged.connect(self.on_lighting_model_changed)
         self.mSlider.valueChanged.connect(self.on_lighting_model_changed)
@@ -99,6 +117,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lightColorButton.clicked.connect(self.on_light_color_changed)
         # Surface texture upload
         self.surfaceTextureButton.clicked.connect(self.on_upload_surface_texture)
+        # Normal map upload
+        self.normalMapButton.clicked.connect(self.on_upload_normal_map)
+        # Normal mapping enabled/disabled
+        self.normalMapCheckBox.stateChanged.connect(self.on_normal_mapping_param_changed)
         # Animation pause/resume
         self.animationButton.clicked.connect(self.on_animation_paused_resumed)
 
