@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>900</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -525,6 +525,20 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="normalMapButton">
+        <property name="text">
+         <string>Upload normal map</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="normalMapCheckBox">
+        <property name="text">
+         <string>Normal mapping</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="animationButton">
         <property name="text">
          <string>Pause animation</string>
@@ -553,8 +567,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>17</height>
+     <width>900</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

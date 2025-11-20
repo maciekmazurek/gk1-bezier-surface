@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(900, 700)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
@@ -314,6 +314,16 @@ class Ui_MainWindow(object):
 
         self.mainVerticalLayout.addWidget(self.surfaceTextureButton)
 
+        self.normalMapButton = QPushButton(self.centralwidget)
+        self.normalMapButton.setObjectName(u"normalMapButton")
+
+        self.mainVerticalLayout.addWidget(self.normalMapButton)
+
+        self.normalMapCheckBox = QCheckBox(self.centralwidget)
+        self.normalMapCheckBox.setObjectName(u"normalMapCheckBox")
+
+        self.mainVerticalLayout.addWidget(self.normalMapCheckBox)
+
         self.animationButton = QPushButton(self.centralwidget)
         self.animationButton.setObjectName(u"animationButton")
 
@@ -329,7 +339,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 17))
+        self.menubar.setGeometry(QRect(0, 0, 900, 21))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -365,6 +375,8 @@ class Ui_MainWindow(object):
         self.lightColorButton.setText(QCoreApplication.translate("MainWindow", u"Select light color", None))
         self.surfaceColorButton.setText(QCoreApplication.translate("MainWindow", u"Select surface color", None))
         self.surfaceTextureButton.setText(QCoreApplication.translate("MainWindow", u"Upload surface texture", None))
+        self.normalMapButton.setText(QCoreApplication.translate("MainWindow", u"Upload normal map", None))
+        self.normalMapCheckBox.setText(QCoreApplication.translate("MainWindow", u"Normal mapping", None))
         self.animationButton.setText(QCoreApplication.translate("MainWindow", u"Pause animation", None))
     # retranslateUi
 
