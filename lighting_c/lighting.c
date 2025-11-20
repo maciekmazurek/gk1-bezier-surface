@@ -13,6 +13,8 @@ typedef struct {
     Vector3D p;
     Vector3D n;
     float u, v;          // parametric coordinates
+    Vector3D Pu;
+    Vector3D Pv;
 } Vertex;
 
 typedef struct {
@@ -55,8 +57,7 @@ static inline void sort_vertices(Triangle *T) {
     if (T->v[1].p.y > T->v[2].p.y) swap_vertices(&T->v[1], &T->v[2]);
 }
 
-static inline void sample_texture(const Texture *T, float u, float v,
-                              float *r, float *g, float *b) {
+static inline Vector3D sample_texture(const Texture *T, float u, float v) {
     if (u<0.f) u=0.f; if (u>1.f) u=1.f;
     if (v<0.f) v=0.f; if (v>1.f) v=1.f;
     float x = u * (T->width - 1);
@@ -74,15 +75,49 @@ static inline void sample_texture(const Texture *T, float u, float v,
 
     float r0 = EXTRACT_R(p00)*(1-fx) + EXTRACT_R(p10)*fx;
     float r1 = EXTRACT_R(p01)*(1-fx) + EXTRACT_R(p11)*fx;
-    *r = (r0*(1-fy) + r1*fy)/255.f;
+    float r = (r0*(1-fy) + r1*fy)/255.f;
 
     float g0 = EXTRACT_G(p00)*(1-fx) + EXTRACT_G(p10)*fx;
     float g1 = EXTRACT_G(p01)*(1-fx) + EXTRACT_G(p11)*fx;
-    *g = (g0*(1-fy) + g1*fy)/255.f;
+    float g = (g0*(1-fy) + g1*fy)/255.f;
 
     float b0 = EXTRACT_B(p00)*(1-fx) + EXTRACT_B(p10)*fx;
     float b1 = EXTRACT_B(p01)*(1-fx) + EXTRACT_B(p11)*fx;
-    *b = (b0*(1-fy) + b1*fy)/255.f;
+    float b = (b0*(1-fy) + b1*fy)/255.f;
+
+    return (Vector3D){ r, g, b };
+}
+
+static inline Vector3D sample_normal_map(const Texture *normal_map, float u, float v) {
+    Vector3D color = sample_texture(normal_map, u, v);
+    Vector3D n = {
+        color.x * 2.f - 1.f,
+        color.y * 2.f - 1.f,
+        color.z * 2.f - 1.f
+    };
+    normalize(&n);
+    return n;
+}
+
+static inline Vector3D transform_texture_normal(const float Pux,
+                                             const float Puy,
+                                             const float Puz,
+                                             const float Pvx,
+                                             const float Pvy,
+                                             const float Pvz,
+                                             const Vector3D *surface_normal,
+                                            const Vector3D *texture_normal) {
+    float x = texture_normal->x * Pux + 
+              texture_normal->y * Pvx + 
+              texture_normal->z * surface_normal->x;
+    float y = texture_normal->x * Puy + 
+              texture_normal->y * Pvy +
+              texture_normal->z * surface_normal->y;
+    float z = texture_normal->x * Puz + 
+              texture_normal->y * Pvz +
+              texture_normal->z * surface_normal->z;
+
+    return (Vector3D){ x, y, z };
 }
 
 static inline uint32_t shade_pixel(const Vector3D *pos,
@@ -123,20 +158,27 @@ static inline uint32_t shade_pixel(const Vector3D *pos,
 
 static void fill_triangle(Triangle *T, const LightingParams *P,
                           uint32_t *framebuffer, int W, int H,
-                          int off_x, int off_y, const Texture *texture) {
+                          int off_x, int off_y, const Texture *texture,
+                          const Texture *normal_map) {
     sort_vertices(T);
     // Rozpakowanie
     float x0=T->v[0].p.x, y0=T->v[0].p.y, z0=T->v[0].p.z;
     float nx0=T->v[0].n.x, ny0=T->v[0].n.y, nz0=T->v[0].n.z;
     float u0=T->v[0].u, v0=T->v[0].v;
+    float Pux0=T->v[0].Pu.x, Puy0=T->v[0].Pu.y, Puz0=T->v[0].Pu.z;
+    float Pvx0=T->v[0].Pv.x, Pvy0=T->v[0].Pv.y, Pvz0=T->v[0].Pv.z;
 
     float x1=T->v[1].p.x, y1=T->v[1].p.y, z1=T->v[1].p.z;
     float nx1=T->v[1].n.x, ny1=T->v[1].n.y, nz1=T->v[1].n.z;
     float u1=T->v[1].u, v1=T->v[1].v;
+    float Pux1=T->v[1].Pu.x, Puy1=T->v[1].Pu.y, Puz1=T->v[1].Pu.z;
+    float Pvx1=T->v[1].Pv.x, Pvy1=T->v[1].Pv.y, Pvz1=T->v[1].Pv.z;
 
     float x2=T->v[2].p.x, y2=T->v[2].p.y, z2=T->v[2].p.z;
     float nx2=T->v[2].n.x, ny2=T->v[2].n.y, nz2=T->v[2].n.z;
     float u2=T->v[2].u, v2=T->v[2].v;
+    float Pux2=T->v[2].Pu.x, Puy2=T->v[2].Pu.y, Puz2=T->v[2].Pu.z;
+    float Pvx2=T->v[2].Pv.x, Pvy2=T->v[2].Pv.y, Pvz2=T->v[2].Pv.z;
 
     float dy02 = y2 - y0; if (fabsf(dy02)<1e-6f) return;
     float denom = (y1 - y2)*(x0 - x2) + (x2 - x1)*(y0 - y2);
@@ -175,12 +217,26 @@ static void fill_triangle(Triangle *T, const LightingParams *P,
                 w0*ny0 + w1*ny1 + w2*ny2,
                 w0*nz0 + w1*nz1 + w2*nz2
             };
+
             float u = w0*u0 + w1*u1 + w2*u2;
             float v = w0*v0 + w1*v1 + w2*v2;
+            float Pux = w0*Pux0 + w1*Pux1 + w2*Pux2;
+            float Puy = w0*Puy0 + w1*Puy1 + w2*Puy2;
+            float Puz = w0*Puz0 + w1*Puz1 + w2*Puz2;
+            float Pvx = w0*Pvx0 + w1*Pvx1 + w2*Pvx2;
+            float Pvy = w0*Pvy0 + w1*Pvy1 + w2*Pvy2;
+            float Pvz = w0*Pvz0 + w1*Pvz1 + w2*Pvz2;
 
             float io_r=P->io_r, io_g=P->io_g, io_b=P->io_b;
-            if (texture){
-                sample_texture(texture, u, v, &io_r, &io_g, &io_b);
+            if (texture) {
+                Vector3D io = sample_texture(texture, u, v);
+                io_r = io.x; io_g = io.y; io_b = io.z;
+                if (normal_map) {
+                    Vector3D tex_n = sample_normal_map(normal_map, u, v);
+                    n = transform_texture_normal(Pux, Puy, Puz,
+                                                Pvx, Pvy, Pvz,
+                                                &n, &tex_n);
+                }
             }
 
             uint32_t color = shade_pixel(&pos, n, io_r, io_g, io_b, P);
@@ -194,7 +250,9 @@ static void fill_triangle(Triangle *T, const LightingParams *P,
 void fill_surface(Triangle *tris, int tri_count,
                   const LightingParams *params,
                   uint32_t *framebuffer, int W, int H,
-                  int off_x, int off_y, const Texture *texture){
+                  int off_x, int off_y, const Texture *texture, 
+                  const Texture *normal_map){
     for(int i=0;i<tri_count;++i)
-        fill_triangle(&tris[i], params, framebuffer, W, H, off_x, off_y, texture);
+        fill_triangle(&tris[i], params, framebuffer, W, H, off_x, off_y, 
+            texture, normal_map);
 }

@@ -11,8 +11,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupSlots()
         control_points_relative_path = "resources/control_points.txt"
         texture_relative_path = "resources/texture_1.png"
+        normal_map_relative_path = "resources/texture_1_normal.png"
         self.render(utils.get_path(control_points_relative_path),
-                    utils.get_path(texture_relative_path))
+                    utils.get_path(texture_relative_path),
+                    utils.get_path(normal_map_relative_path))
 
     def on_triangulation_changed(self, value):
         self.triangulationValueLabel.setText(str(value))
@@ -100,9 +102,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Animation pause/resume
         self.animationButton.clicked.connect(self.on_animation_paused_resumed)
 
-    def render(self, control_points_path: str, texture_path: str):
+    def render(self, control_points_path: str, texture_path: str,
+               normal_map_path: str):
         control_points = utils.load_control_points(control_points_path)
         texture = utils.load_texture(texture_path)
+        normal_map = utils.load_texture(normal_map_path)
         divisions = self.triangulationSlider.value()
         alpha = self.alphaSlider.value()
         beta = self.betaSlider.value()
@@ -115,7 +119,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         light_source_Z = self.lightSlider.value()
         self.canvas.initialize(control_points, texture, divisions, 
                                alpha, beta, show_polygon, show_mesh,
-                               show_fill, kd, ks, m, light_source_Z)
+                               show_fill, kd, ks, m, light_source_Z, 
+                               normal_map)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -22,9 +22,9 @@ class Canvas(QWidget):
                    texture: QImage, divisions: int, alpha: float, 
                    beta: float, show_polygon: bool, show_mesh:bool, 
                    show_fill:bool, kd: float, ks: float, m: int, 
-                   light_source_Z: int):
+                   light_source_Z: int, normal_map: QImage):
         self.bezier_surface_graphics = BezierSurfaceGraphics(control_points,
-            texture, show_polygon, show_mesh, show_fill)
+            texture, show_polygon, show_mesh, show_fill, normal_map)
         self.bezier_surface_graphics.generate_mesh(divisions)
         self.bezier_surface_graphics.rotate(alpha, beta)
         light_source = LightSource(light_source_Z)
@@ -106,6 +106,10 @@ class Canvas(QWidget):
         if self.bezier_surface_graphics.texture_enabled:
             texture = self.bezier_surface_graphics.texture
 
+        normal_map = None
+        if self.bezier_surface_graphics.normal_mapping_enabled:
+            normal_map = self.bezier_surface_graphics.normal_map
+
         fill_surface_c(
             triangles_list=self.bezier_surface_graphics.bezier_surface.mesh,
             kd=self.lighting_model.kd,
@@ -117,6 +121,7 @@ class Canvas(QWidget):
             framebuffer=self.framebuffer,
             scale=self.scale,
             texture_qimage=texture,
+            normal_map_qimage=normal_map
         )
 
         painter.save()
