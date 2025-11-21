@@ -1,12 +1,26 @@
 from PySide6.QtGui import QVector3D
-from geometry.bezier import evaluate_bezier_point
+from geometry.bezier import generate_vertices_grid
 from geometry.general import rotate_by_Z_X
 
 class Vertex:
-    def __init__(self, u: float, v: float, V: list[list[QVector3D]]):
+    # def __init__(self, u: float, v: float, V: list[list[QVector3D]]):
+    #     self.u = u
+    #     self.v = v
+    #     self.P, self.Pu, self.Pv, self.N = evaluate_bezier_point(u, v, V)
+    #     # After rotation
+    #     self.P_rot = self.P
+    #     self.Pu_rot = self.Pu
+    #     self.Pv_rot = self.Pv
+    #     self.N_rot = self.N
+
+    def __init__(self, u: float, v: float, P: QVector3D, Pu: QVector3D,
+                 Pv: QVector3D, N: QVector3D):
         self.u = u
         self.v = v
-        self.P, self.Pu, self.Pv, self.N = evaluate_bezier_point(u, v, V)
+        self.P = P
+        self.Pu = Pu
+        self.Pv = Pv
+        self.N = N
         # After rotation
         self.P_rot = self.P
         self.Pu_rot = self.Pu
@@ -30,20 +44,22 @@ class BezierSurface:
         self.mesh = []
     
     def generate_mesh(self, divisions: int):
-        self.vertices_grid = []
-        self.mesh = []
-
         # Generate grid of vertices
-        for i in range(divisions + 1):
-            u = i / divisions
+        self.vertices_grid = []
+        u, v, P, Pu, Pv, N = generate_vertices_grid(self.control_points, divisions)
+        for i in range(len(u)):
             row = []
-            for j in range(divisions + 1):
-                v = j / divisions
-                vertex = Vertex(u, v, self.cpoints_original())
+            for j in range(len(v)):
+                P_qvec = QVector3D(P[i][j][0], P[i][j][1], P[i][j][2])
+                Pu_qvec = QVector3D(Pu[i][j][0], Pu[i][j][1], Pu[i][j][2])
+                Pv_qvec = QVector3D(Pv[i][j][0], Pv[i][j][1], Pv[i][j][2])
+                N_qvec = QVector3D(N[i][j][0], N[i][j][1], N[i][j][2])
+                vertex = Vertex(u[i], v[j], P_qvec, Pu_qvec, Pv_qvec, N_qvec)
                 row.append(vertex)
             self.vertices_grid.append(row)
         
         # Create triangles from the grid
+        self.mesh = []
         for i in range(divisions):
             for j in range(divisions):
                 # Get 4 vertices of the quad
