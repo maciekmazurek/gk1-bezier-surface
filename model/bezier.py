@@ -3,16 +3,6 @@ from geometry.bezier import generate_vertices_grid
 from geometry.general import rotate_by_Z_X
 
 class Vertex:
-    # def __init__(self, u: float, v: float, V: list[list[QVector3D]]):
-    #     self.u = u
-    #     self.v = v
-    #     self.P, self.Pu, self.Pv, self.N = evaluate_bezier_point(u, v, V)
-    #     # After rotation
-    #     self.P_rot = self.P
-    #     self.Pu_rot = self.Pu
-    #     self.Pv_rot = self.Pv
-    #     self.N_rot = self.N
-
     def __init__(self, u: float, v: float, P: QVector3D, Pu: QVector3D,
                  Pv: QVector3D, N: QVector3D):
         self.u = u
@@ -82,9 +72,6 @@ class BezierSurface:
         for row in self.control_points:
             for cp in row:
                 cp.rot = rotate_by_Z_X(cp.original, alpha, beta)
-
-    def cpoints_original(self):
-        return [[cp.original for cp in row] for row in self.control_points]
     
     def cpoints_rot(self):
         return [[cp.rot for cp in row] for row in self.control_points]

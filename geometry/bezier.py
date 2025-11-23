@@ -13,38 +13,6 @@ def decompose(control_points):
     Vz = np.array([[cp.original.z() for cp in row] for row in control_points], dtype=float)
     return Vx, Vy, Vz
 
-# def evaluate_bezier_point(u: float, v: float, V: list[list[QVector3D]]):
-#     Vx, Vy, Vz = decompose_matrix(V)
-#     u_vector = np.array([u**3, u*u, u, 1], dtype=float)
-#     du_vector = np.array([3*u*u, 2*u, 1, 0], dtype=float)
-#     v_vector = np.array([v**3, v*v, v, 1], dtype=float)
-#     dv_vector = np.array([3*v*v, 2*v, 1, 0], dtype=float)
-
-#     u_B = u_vector @ B
-#     du_B = du_vector @ B
-#     Bt_v = B.T @ v_vector
-#     Bt_dv = B.T @ dv_vector
-
-#     P = QVector3D()
-#     Pu = QVector3D()
-#     Pv = QVector3D()
-
-#     P.setX(u_B @ Vx @ Bt_v)
-#     P.setY(u_B @ Vy @ Bt_v)
-#     P.setZ(u_B @ Vz @ Bt_v)
-
-#     Pu.setX(du_B @ Vx @ Bt_v)
-#     Pu.setY(du_B @ Vy @ Bt_v)
-#     Pu.setZ(du_B @ Vz @ Bt_v)
-
-#     Pv.setX(u_B @ Vx @ Bt_dv)
-#     Pv.setY(u_B @ Vy @ Bt_dv)
-#     Pv.setZ(u_B @ Vz @ Bt_dv)
-
-#     N = QVector3D.normal(Pu, Pv)
-
-#     return P, Pu, Pv, N
-
 def generate_vertices_grid(control_points, divisions):
     Vx, Vy, Vz = decompose(control_points)
     BVxBt = B @ Vx @ B.T
