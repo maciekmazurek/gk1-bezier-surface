@@ -1,4 +1,4 @@
-from PySide6.QtGui import QVector3D, QColor
+from PySide6.QtGui import QVector3D
 from geometry.general import position_on_circle
 
 import config

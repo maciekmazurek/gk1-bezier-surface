@@ -41,31 +41,36 @@ _lib.fill_surface.argtypes = [
     ctypes.POINTER(TextureC)
 ]
 _lib.fill_surface.restype = None
+_lib.fill_surface_buffers = getattr(_lib, "fill_surface_buffers")
+_lib.fill_surface_buffers.argtypes = [
+    ctypes.POINTER(ctypes.c_float),  # positions
+    ctypes.POINTER(ctypes.c_float),  # normals
+    ctypes.POINTER(ctypes.c_float),  # pu
+    ctypes.POINTER(ctypes.c_float),  # pv
+    ctypes.POINTER(ctypes.c_float),  # uv
+    ctypes.POINTER(ctypes.c_int),    # tri_indices
+    ctypes.c_int,
+    ctypes.POINTER(LightingParamsC),
+    ctypes.POINTER(ctypes.c_uint32),
+    ctypes.c_int, ctypes.c_int,
+    ctypes.c_int, ctypes.c_int,
+    ctypes.POINTER(TextureC), ctypes.POINTER(TextureC)
+]
+_lib.fill_surface_buffers.restype = None
 
-def fill_surface_c(triangles_list, kd, ks, m, light_pos, io_color, il_color,
-                   framebuffer: QImage, scale: float, 
-                   texture_qimage: QImage | None, 
+def fill_surface_c(P_grid_rot, N_grid_rot, Pu_grid_rot, Pv_grid_rot,
+                   u_grid, v_grid, tri_indices,
+                   kd, ks, m, light_pos, io_color, il_color,
+                   framebuffer: QImage, scale: float,
+                   texture_qimage: QImage | None,
                    normal_map_qimage: QImage | None):
-    tri_count = len(triangles_list)
-    TriArrayType = TriangleC * tri_count
-    tri_array = TriArrayType()
-    for i, tri in enumerate(triangles_list):
-        for j, vert in enumerate(tri.vertices):
-            p = vert.P_rot; n = vert.N_rot
-            tri_array[i].v[j].x  = p.x() * scale
-            tri_array[i].v[j].y  = p.y() * scale
-            tri_array[i].v[j].z  = p.z() * scale
-            tri_array[i].v[j].nx = n.x()
-            tri_array[i].v[j].ny = n.y()
-            tri_array[i].v[j].nz = n.z()
-            tri_array[i].v[j].u  = vert.u
-            tri_array[i].v[j].v  = vert.v
-            tri_array[i].v[j].Pux = vert.Pu_rot.x()
-            tri_array[i].v[j].Puy = vert.Pu_rot.y()
-            tri_array[i].v[j].Puz = vert.Pu_rot.z()
-            tri_array[i].v[j].Pvx = vert.Pv_rot.x()
-            tri_array[i].v[j].Pvy = vert.Pv_rot.y()
-            tri_array[i].v[j].Pvz = vert.Pv_rot.z()
+    # Flatten geometry to contiguous float32 buffers
+    positions = (P_grid_rot.reshape(-1, 3) * scale).astype(np.float32, copy=False)
+    normals   = N_grid_rot.reshape(-1, 3).astype(np.float32, copy=False)
+    pu        = Pu_grid_rot.reshape(-1, 3).astype(np.float32, copy=False)
+    pv        = Pv_grid_rot.reshape(-1, 3).astype(np.float32, copy=False)
+    uv        = np.stack([u_grid.ravel(), v_grid.ravel()], axis=1).astype(np.float32, copy=False)
+    tri_idx   = tri_indices.astype(np.int32, copy=False)
 
     params = LightingParamsC()
     params.kd = kd; params.ks = ks; params.m = m
@@ -105,6 +110,15 @@ def fill_surface_c(triangles_list, kd, ks, m, light_pos, io_color, il_color,
         normal_map_c.pixels = np_normal_map.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
         normal_map_ptr = ctypes.byref(normal_map_c)
 
-    _lib.fill_surface(tri_array, tri_count, ctypes.byref(params),
-                      img_ptr, fb_w, fb_h, off_x, off_y, texture_ptr, 
-                      normal_map_ptr)
+    _lib.fill_surface_buffers(
+        positions.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+        normals.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+        pu.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+        pv.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+        uv.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+        tri_idx.ctypes.data_as(ctypes.POINTER(ctypes.c_int)),
+        tri_idx.shape[0],
+        ctypes.byref(params),
+        img_ptr, fb_w, fb_h, off_x, off_y,
+        texture_ptr, normal_map_ptr
+    )
