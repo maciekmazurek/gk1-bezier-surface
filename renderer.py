@@ -108,8 +108,15 @@ class Canvas(QWidget):
         if self.bezier_surface_graphics.normal_mapping_enabled:
             normal_map = self.bezier_surface_graphics.normal_map
 
+        surf = self.bezier_surface_graphics.bezier_surface
         fill_surface_c(
-            triangles_list=self.bezier_surface_graphics.bezier_surface.mesh,
+            P_grid_rot=surf.P_grid_rot,
+            N_grid_rot=surf.N_grid_rot,
+            Pu_grid_rot=surf.Pu_grid_rot,
+            Pv_grid_rot=surf.Pv_grid_rot,
+            u_grid=surf.u_grid,
+            v_grid=surf.v_grid,
+            tri_indices=surf.tri_indices,
             kd=self.lighting_model.kd,
             ks=self.lighting_model.ks,
             m=self.lighting_model.m,

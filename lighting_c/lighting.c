@@ -256,3 +256,66 @@ void fill_surface(Triangle *tris, int tri_count,
         fill_triangle(&tris[i], params, framebuffer, W, H, off_x, off_y, 
             texture, normal_map);
 }
+
+// New API: operate directly on flat buffers of vertices and indices
+void fill_surface_buffers(
+    const float *positions,   // Nverts*3 (x,y,z)
+    const float *normals,     // Nverts*3 (nx,ny,nz)
+    const float *pu,          // Nverts*3 (Pux,Puy,Puz)
+    const float *pv,          // Nverts*3 (Pvx,Pvy,Pvz)
+    const float *uv,          // Nverts*2 (u,v)
+    const int   *tri_indices, // Ntris*3
+    int tri_count,
+    const LightingParams *params,
+    uint32_t *framebuffer, int W, int H,
+    int off_x, int off_y,
+    const Texture *texture,
+    const Texture *normal_map
+) {
+    for (int t = 0; t < tri_count; ++t) {
+        int i0 = tri_indices[t*3 + 0];
+        int i1 = tri_indices[t*3 + 1];
+        int i2 = tri_indices[t*3 + 2];
+
+        const float *p0  = &positions[i0*3];
+        const float *p1  = &positions[i1*3];
+        const float *p2  = &positions[i2*3];
+        const float *n0  = &normals[i0*3];
+        const float *n1  = &normals[i1*3];
+        const float *n2  = &normals[i2*3];
+        const float *pu0 = &pu[i0*3];
+        const float *pu1 = &pu[i1*3];
+        const float *pu2 = &pu[i2*3];
+        const float *pv0 = &pv[i0*3];
+        const float *pv1 = &pv[i1*3];
+        const float *pv2 = &pv[i2*3];
+        const float *uv0 = &uv[i0*2];
+        const float *uv1 = &uv[i1*2];
+        const float *uv2 = &uv[i2*2];
+
+        Triangle T;
+
+        T.v[0].p.x = p0[0]; T.v[0].p.y = p0[1]; T.v[0].p.z = p0[2];
+        T.v[1].p.x = p1[0]; T.v[1].p.y = p1[1]; T.v[1].p.z = p1[2];
+        T.v[2].p.x = p2[0]; T.v[2].p.y = p2[1]; T.v[2].p.z = p2[2];
+
+        T.v[0].n.x = n0[0]; T.v[0].n.y = n0[1]; T.v[0].n.z = n0[2];
+        T.v[1].n.x = n1[0]; T.v[1].n.y = n1[1]; T.v[1].n.z = n1[2];
+        T.v[2].n.x = n2[0]; T.v[2].n.y = n2[1]; T.v[2].n.z = n2[2];
+
+        T.v[0].u = uv0[0]; T.v[0].v = uv0[1];
+        T.v[1].u = uv1[0]; T.v[1].v = uv1[1];
+        T.v[2].u = uv2[0]; T.v[2].v = uv2[1];
+
+        T.v[0].Pu.x = pu0[0]; T.v[0].Pu.y = pu0[1]; T.v[0].Pu.z = pu0[2];
+        T.v[1].Pu.x = pu1[0]; T.v[1].Pu.y = pu1[1]; T.v[1].Pu.z = pu1[2];
+        T.v[2].Pu.x = pu2[0]; T.v[2].Pu.y = pu2[1]; T.v[2].Pu.z = pu2[2];
+
+        T.v[0].Pv.x = pv0[0]; T.v[0].Pv.y = pv0[1]; T.v[0].Pv.z = pv0[2];
+        T.v[1].Pv.x = pv1[0]; T.v[1].Pv.y = pv1[1]; T.v[1].Pv.z = pv1[2];
+        T.v[2].Pv.x = pv2[0]; T.v[2].Pv.y = pv2[1]; T.v[2].Pv.z = pv2[2];
+
+        fill_triangle(&T, params, framebuffer, W, H, off_x, off_y,
+                      texture, normal_map);
+    }
+}
