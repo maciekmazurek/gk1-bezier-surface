@@ -7,14 +7,10 @@ B = np.array([
     [1, 0, 0, 0]
 ], dtype=float)
 
-def decompose(control_points):
-    Vx = np.array([[cp.original.x() for cp in row] for row in control_points], dtype=float)  # (4,4)
-    Vy = np.array([[cp.original.y() for cp in row] for row in control_points], dtype=float)
-    Vz = np.array([[cp.original.z() for cp in row] for row in control_points], dtype=float)
-    return Vx, Vy, Vz
-
-def generate_vertices_grid(control_points, divisions):
-    Vx, Vy, Vz = decompose(control_points)
+def generate_vertices_grid(cp_grid, divisions):
+    Vx = cp_grid[:, :, 0]
+    Vy = cp_grid[:, :, 1]
+    Vz = cp_grid[:, :, 2]
     BVxBt = B @ Vx @ B.T
     BVyBt = B @ Vy @ B.T
     BVzBt = B @ Vz @ B.T
@@ -46,4 +42,6 @@ def generate_vertices_grid(control_points, divisions):
     norm = np.linalg.norm(N, axis=2, keepdims=True)
     N = N / (norm + 1e-12)
 
-    return (u, v, P, Pu, Pv, N)
+    u_grid, v_grid = np.meshgrid(u, v, indexing='ij')
+
+    return (u_grid, v_grid, P, Pu, Pv, N)

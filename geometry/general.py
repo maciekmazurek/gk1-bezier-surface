@@ -1,5 +1,3 @@
-from PySide6.QtGui import QVector3D
-
 import numpy as np
 import math
 
@@ -27,22 +25,12 @@ def np_rotation_matrix_x(angle_deg):
         [0, sin_b,  cos_b]
     ], dtype=float)
 
-def rotate_by_Z_X(vector, alpha, beta):
-    """Rotate a Qt QVector3D by alpha degrees around Z, then beta degrees around X.
-
-    The function converts the Qt vector to numpy, applies Z then X rotation matrices,
-    and converts the result back to QVector3D.
-    """
-    np_matrix_z = np_rotation_matrix_z(alpha)
-    np_matrix_x = np_rotation_matrix_x(beta)
-
-    return np_to_qt(np_matrix_x @ np_matrix_z @ qt_to_np(vector))
-
-def np_to_qt(vector):
-    return QVector3D(vector[0], vector[1], vector[2])
-
-def qt_to_np(vector: QVector3D):
-    return np.array([vector.x(), vector.y(), vector.z()], dtype=float)
+def rotate_by_Z_X(vectors, alpha, beta):
+    # vectors' shape is (..., 3)
+    Rz = np_rotation_matrix_z(alpha)
+    Rx = np_rotation_matrix_x(beta)
+    R = Rx @ Rz
+    return vectors @ R.T 
 
 def position_on_circle(radius: float, angle: float):
     x = radius * math.cos(angle)

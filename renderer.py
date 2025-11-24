@@ -1,13 +1,13 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QVector3D, QImage
+from PySide6.QtGui import QPainter, QPen, QColor, QBrush, QImage
 from PySide6.QtCore import QPointF, Qt
-from model.bezier import ControlPoint
 from model.lighting import LightingModel, LightSource
 from lighting_wrapper import fill_surface_c
 from model.animation import Animation
 from graphics.bezier import BezierSurfaceGraphics
 
 import config
+import numpy as np
 
 class Canvas(QWidget):
     def __init__(self, parent=None):
@@ -18,11 +18,11 @@ class Canvas(QWidget):
         self.scale = config.SCALE
         self.animation = Animation(self._on_anim_tick)
 
-    def initialize(self, control_points: list[list[ControlPoint]], 
-                   texture: QImage, divisions: int, alpha: float, 
-                   beta: float, show_polygon: bool, show_mesh:bool, 
-                   show_fill:bool, kd: float, ks: float, m: int, 
-                   light_source_Z: int, normal_map: QImage):
+    def initialize(self, control_points: np.ndarray, texture: QImage, 
+                   divisions: int, alpha: float, beta: float, 
+                   show_polygon: bool, show_mesh:bool, show_fill:bool, 
+                   kd: float, ks: float, m: int, light_source_Z: int, 
+                   normal_map: QImage):
         self.bezier_surface_graphics = BezierSurfaceGraphics(control_points,
             texture, show_polygon, show_mesh, show_fill, normal_map)
         self.bezier_surface_graphics.generate_mesh(divisions)
@@ -56,41 +56,39 @@ class Canvas(QWidget):
     def draw_polygon(self, painter: QPainter):
         pen = QPen(QColor(0, 0, 0), 2)
         painter.setPen(pen)
+        cp_grid_rot = self.bezier_surface_graphics.bezier_surface.cp_grid_rot
 
-        control_points_rot = self.bezier_surface_graphics.bezier_surface.cpoints_rot()
-
-        # Lines along u direction
+        # Linia wzdłuż u (wiersze)
         for i in range(4):
             for j in range(3):
-                p1 = self.project_point(control_points_rot[i][j])
-                p2 = self.project_point(control_points_rot[i][j + 1])
+                p1 = self.project_point(cp_grid_rot[i, j])
+                p2 = self.project_point(cp_grid_rot[i, j + 1])
                 painter.drawLine(p1, p2)
 
-        # Lines along v direction
+        # Linia wzdłuż v (kolumny)
         for j in range(4):
             for i in range(3):
-                p1 = self.project_point(control_points_rot[i][j])
-                p2 = self.project_point(control_points_rot[i + 1][j])
+                p1 = self.project_point(cp_grid_rot[i, j])
+                p2 = self.project_point(cp_grid_rot[i + 1, j])
                 painter.drawLine(p1, p2)
 
-        # Control points
+        # Punkty kontrolne
         painter.setBrush(QBrush(QColor(0, 0, 255)))
-        for row in control_points_rot:
-            for cp in row:
-                p = self.project_point(cp)
+        for i in range(4):
+            for j in range(4):
+                p = self.project_point(cp_grid_rot[i, j])
                 painter.drawEllipse(p, 5, 5)
 
     def draw_mesh(self, painter: QPainter):
         pen = QPen(QColor(128, 128, 255), 1)
         painter.setPen(pen)
 
-        for triangle in self.bezier_surface_graphics.bezier_surface.mesh:
-            v0, v1, v2 = triangle.vertices
-            
-            p0 = self.project_point(v0.P_rot)
-            p1 = self.project_point(v1.P_rot)
-            p2 = self.project_point(v2.P_rot)
-            
+        # Spłaszczona tablica pozycji (N,3)
+        positions = self.bezier_surface_graphics.bezier_surface.P_grid_rot.reshape(-1, 3)
+        for tri in self.bezier_surface_graphics.bezier_surface.tri_indices:
+            p0 = self.project_point(positions[tri[0]])
+            p1 = self.project_point(positions[tri[1]])
+            p2 = self.project_point(positions[tri[2]])
             painter.drawLine(p0, p1)
             painter.drawLine(p1, p2)
             painter.drawLine(p2, p0)
@@ -195,9 +193,10 @@ class Canvas(QWidget):
         return self.animation.paused
 
     # 3D -> 2D projection (orthogonal projection onto XY plane)
-    def project_point(self, point: QVector3D) -> QPointF:
-        x = point.x() * self.scale
-        y = point.y() * self.scale
+    def project_point(self, point) -> QPointF:
+        # Zakładamy postać [x,y,z]
+        x = float(point[0]) * self.scale
+        y = float(point[1]) * self.scale
         return QPointF(x, y)
     
     # Pomocnicze: alokacja/realokacja bufora po zmianie rozmiaru
