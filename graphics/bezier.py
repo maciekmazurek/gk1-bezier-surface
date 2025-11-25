@@ -13,7 +13,7 @@ class BezierSurfaceGraphics:
         self.texture = texture
         self.texture_enabled = False
         self.normal_map = normal_map
-        self.normal_mapping_enabled = True
+        self.normal_mapping_enabled = False
 
     def rotate(self, alpha, beta):
         self.bezier_surface.rotate(alpha, beta)

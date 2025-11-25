@@ -1,4 +1,3 @@
-import re
 from PySide6.QtWidgets import QApplication, QMainWindow, QColorDialog, QFileDialog
 from ui.mainwindow_ui import Ui_MainWindow
 

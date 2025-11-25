@@ -150,6 +150,12 @@
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
+          <property name="tickPosition">
+           <enum>QSlider::TickPosition::TicksBothSides</enum>
+          </property>
+          <property name="tickInterval">
+           <number>90</number>
+          </property>
          </widget>
         </item>
         <item>
@@ -198,6 +204,12 @@
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TickPosition::TicksBothSides</enum>
+          </property>
+          <property name="tickInterval">
+           <number>90</number>
           </property>
          </widget>
         </item>
@@ -306,7 +318,7 @@
            <number>100</number>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>100</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -316,7 +328,7 @@
         <item>
          <widget class="QLabel" name="kdValueLabel">
           <property name="text">
-           <string>0.5</string>
+           <string>1.0</string>
           </property>
          </widget>
         </item>
@@ -355,7 +367,7 @@
            <number>100</number>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>100</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -365,7 +377,7 @@
         <item>
          <widget class="QLabel" name="ksValueLabel">
           <property name="text">
-           <string>0.5</string>
+           <string>1.0</string>
           </property>
          </widget>
         </item>
@@ -407,7 +419,7 @@
            <number>100</number>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>100</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -417,7 +429,7 @@
         <item>
          <widget class="QLabel" name="mValueLabel">
           <property name="text">
-           <string>50</string>
+           <string>100</string>
           </property>
          </widget>
         </item>
@@ -453,13 +465,13 @@
            </size>
           </property>
           <property name="minimum">
-           <number>0</number>
+           <number>-5</number>
           </property>
           <property name="maximum">
-           <number>6</number>
+           <number>20</number>
           </property>
           <property name="value">
-           <number>3</number>
+           <number>10</number>
           </property>
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -469,7 +481,7 @@
         <item>
          <widget class="QLabel" name="lightValueLabel">
           <property name="text">
-           <string>3</string>
+           <string>10</string>
           </property>
          </widget>
         </item>

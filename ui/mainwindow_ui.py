@@ -100,6 +100,8 @@ class Ui_MainWindow(object):
         self.alphaSlider.setMinimum(-90)
         self.alphaSlider.setMaximum(90)
         self.alphaSlider.setOrientation(Qt.Orientation.Horizontal)
+        self.alphaSlider.setTickPosition(QSlider.TickPosition.TicksBothSides)
+        self.alphaSlider.setTickInterval(90)
 
         self.alphaHorizontalLayout.addWidget(self.alphaSlider)
 
@@ -128,6 +130,8 @@ class Ui_MainWindow(object):
         self.betaSlider.setMinimum(-90)
         self.betaSlider.setMaximum(90)
         self.betaSlider.setOrientation(Qt.Orientation.Horizontal)
+        self.betaSlider.setTickPosition(QSlider.TickPosition.TicksBothSides)
+        self.betaSlider.setTickInterval(90)
 
         self.betaHorizontalLayout.addWidget(self.betaSlider)
 
@@ -179,7 +183,7 @@ class Ui_MainWindow(object):
         self.kdSlider.setSizePolicy(sizePolicy1)
         self.kdSlider.setMinimumSize(QSize(120, 0))
         self.kdSlider.setMaximum(100)
-        self.kdSlider.setValue(50)
+        self.kdSlider.setValue(100)
         self.kdSlider.setOrientation(Qt.Orientation.Horizontal)
 
         self.kdHorizontalLayout.addWidget(self.kdSlider)
@@ -207,7 +211,7 @@ class Ui_MainWindow(object):
         self.ksSlider.setSizePolicy(sizePolicy1)
         self.ksSlider.setMinimumSize(QSize(120, 0))
         self.ksSlider.setMaximum(100)
-        self.ksSlider.setValue(50)
+        self.ksSlider.setValue(100)
         self.ksSlider.setOrientation(Qt.Orientation.Horizontal)
 
         self.ksHorizontalLayout.addWidget(self.ksSlider)
@@ -236,7 +240,7 @@ class Ui_MainWindow(object):
         self.mSlider.setMinimumSize(QSize(120, 0))
         self.mSlider.setMinimum(1)
         self.mSlider.setMaximum(100)
-        self.mSlider.setValue(50)
+        self.mSlider.setValue(100)
         self.mSlider.setOrientation(Qt.Orientation.Horizontal)
 
         self.mHorizontalLayout.addWidget(self.mSlider)
@@ -263,9 +267,9 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.lightSlider.sizePolicy().hasHeightForWidth())
         self.lightSlider.setSizePolicy(sizePolicy1)
         self.lightSlider.setMinimumSize(QSize(120, 0))
-        self.lightSlider.setMinimum(0)
-        self.lightSlider.setMaximum(6)
-        self.lightSlider.setValue(3)
+        self.lightSlider.setMinimum(-5)
+        self.lightSlider.setMaximum(20)
+        self.lightSlider.setValue(10)
         self.lightSlider.setOrientation(Qt.Orientation.Horizontal)
 
         self.lightHorizontalLayout.addWidget(self.lightSlider)
@@ -362,13 +366,13 @@ class Ui_MainWindow(object):
         self.meshCheckBox.setText(QCoreApplication.translate("MainWindow", u"Mesh", None))
         self.fillCheckBox.setText(QCoreApplication.translate("MainWindow", u"Fill", None))
         self.kdLabel.setText(QCoreApplication.translate("MainWindow", u"kd (diffusion)", None))
-        self.kdValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.5", None))
+        self.kdValueLabel.setText(QCoreApplication.translate("MainWindow", u"1.0", None))
         self.ksLabel.setText(QCoreApplication.translate("MainWindow", u"ks (specularity)", None))
-        self.ksValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.5", None))
+        self.ksValueLabel.setText(QCoreApplication.translate("MainWindow", u"1.0", None))
         self.mLabel.setText(QCoreApplication.translate("MainWindow", u"m (gloss)", None))
-        self.mValueLabel.setText(QCoreApplication.translate("MainWindow", u"50", None))
+        self.mValueLabel.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.lightLabel.setText(QCoreApplication.translate("MainWindow", u"Light source (Z)", None))
-        self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"3", None))
+        self.lightValueLabel.setText(QCoreApplication.translate("MainWindow", u"10", None))
         self.surfaceFillingLabel.setText(QCoreApplication.translate("MainWindow", u"Surface filling", None))
         self.solidColorRadioButton.setText(QCoreApplication.translate("MainWindow", u"Solid color", None))
         self.textureRadioButton.setText(QCoreApplication.translate("MainWindow", u"Texture", None))

@@ -74,7 +74,7 @@ def fill_surface_c(P_grid_rot, N_grid_rot, Pu_grid_rot, Pv_grid_rot,
 
     params = LightingParamsC()
     params.kd = kd; params.ks = ks; params.m = m
-    params.lx = light_pos.x(); params.ly = light_pos.y(); params.lz = light_pos.z()
+    params.lx = light_pos.x() * scale; params.ly = light_pos.y() * scale; params.lz = light_pos.z() * scale
     params.io_r = io_color.redF(); params.io_g = io_color.greenF(); params.io_b = io_color.blueF()
     params.il_r = il_color.redF(); params.il_g = il_color.greenF(); params.il_b = il_color.blueF()
 
