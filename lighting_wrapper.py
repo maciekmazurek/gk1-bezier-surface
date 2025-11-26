@@ -2,18 +2,6 @@ import ctypes, numpy as np
 from pathlib import Path
 from PySide6.QtGui import QImage
 
-class VertexC(ctypes.Structure):
-    _fields_ = [
-        ("x", ctypes.c_float), ("y", ctypes.c_float), ("z", ctypes.c_float),
-        ("nx", ctypes.c_float), ("ny", ctypes.c_float), ("nz", ctypes.c_float),
-        ("u", ctypes.c_float), ("v", ctypes.c_float),
-        ("Pux", ctypes.c_float), ("Puy", ctypes.c_float), ("Puz", ctypes.c_float),
-        ("Pvx", ctypes.c_float), ("Pvy", ctypes.c_float), ("Pvz", ctypes.c_float),
-    ]
-
-class TriangleC(ctypes.Structure):
-    _fields_ = [("v", VertexC * 3)]
-
 class LightingParamsC(ctypes.Structure):
     _fields_ = [
         ("kd", ctypes.c_float), ("ks", ctypes.c_float),
@@ -31,16 +19,6 @@ class TextureC(ctypes.Structure):
     ]
 
 _lib = ctypes.CDLL(str(Path(__file__).parent / "lighting_c" / "lighting.dll"))
-_lib.fill_surface.argtypes = [
-    ctypes.POINTER(TriangleC), ctypes.c_int,
-    ctypes.POINTER(LightingParamsC),
-    ctypes.POINTER(ctypes.c_uint32),
-    ctypes.c_int, ctypes.c_int,
-    ctypes.c_int, ctypes.c_int,
-    ctypes.POINTER(TextureC),
-    ctypes.POINTER(TextureC)
-]
-_lib.fill_surface.restype = None
 _lib.fill_surface_buffers = getattr(_lib, "fill_surface_buffers")
 _lib.fill_surface_buffers.argtypes = [
     ctypes.POINTER(ctypes.c_float),  # positions

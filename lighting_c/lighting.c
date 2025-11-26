@@ -257,7 +257,6 @@ void fill_surface(Triangle *tris, int tri_count,
             texture, normal_map);
 }
 
-// New API: operate directly on flat buffers of vertices and indices
 void fill_surface_buffers(
     const float *positions,   // Nverts*3 (x,y,z)
     const float *normals,     // Nverts*3 (nx,ny,nz)
