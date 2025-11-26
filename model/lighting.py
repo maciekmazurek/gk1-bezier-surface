@@ -2,6 +2,7 @@ from PySide6.QtGui import QVector3D
 from geometry.general import position_on_circle
 
 import config
+import math
 
 class LightSource:
     def __init__(self, Z: int, 
@@ -15,8 +16,10 @@ class LightSource:
         self.position_cache = self.position(0)
 
     def position(self, time) -> QVector3D:
-        angle = (time / 1000) * self.angular_speed
-        x, y = position_on_circle(self.radius, angle)
+        t = time / 1000
+        angle = t * self.angular_speed
+        radius_t = self.radius * (1.0 + 0.5 * math.sin(t))
+        x, y = position_on_circle(radius_t, angle)
         return QVector3D(x, y, self.Z)
     
     def update_cache(self, time):
